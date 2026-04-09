@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 282" role="img" aria-label="Code Colours inspector reference">
+  <rect width="860" height="282" fill="#434343"/>
+  <text x="8" y="16" fill="#b6b6b6" font-family="Consolas, monospace" font-size="14">▼ Code Colours</text>
+  <text x="36" y="40" fill="#d7d7d7" font-family="Consolas, monospace" font-size="13">Code Colours</text>
+  <g font-family="Consolas, monospace" font-size="12" fill="#cdcdcd">
+    <text x="36" y="68">Code Background</text>
+    <text x="36" y="90">Code Line Number</text>
+    <text x="36" y="112">Code Keyword</text>
+    <text x="36" y="134">Code Type</text>
+    <text x="36" y="156">Code Method</text>
+    <text x="36" y="178">Code Variable</text>
+    <text x="36" y="200">Code Attribute</text>
+    <text x="36" y="222">Code String</text>
+    <text x="36" y="244">Code Comment</text>
+    <text x="36" y="266">Code Preprocessor</text>
+  </g>
+  <g>
+    <rect x="364" y="54" width="466" height="16" fill="#2a2427" stroke="#dedede"/>
+    <rect x="364" y="76" width="466" height="16" fill="#b8aaa3" stroke="#dedede"/>
+    <rect x="364" y="98" width="466" height="16" fill="#ef7a4d" stroke="#dedede"/>
+    <rect x="364" y="120" width="466" height="16" fill="#e0b28d" stroke="#dedede"/>
+    <rect x="364" y="142" width="466" height="16" fill="#edaa82" stroke="#dedede"/>
+    <rect x="364" y="164" width="466" height="16" fill="#eceae4" stroke="#dedede"/>
+    <rect x="364" y="186" width="466" height="16" fill="#dc9c58" stroke="#dedede"/>
+    <rect x="364" y="208" width="466" height="16" fill="#c8845a" stroke="#dedede"/>
+    <rect x="364" y="230" width="466" height="16" fill="#9a807f" stroke="#dedede"/>
+    <rect x="364" y="252" width="466" height="16" fill="#c98a68" stroke="#dedede"/>
+  </g>
+</svg>

@@ -3,234 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AC_Tools is a static GitHub Pages showcase for a growing suite of Unity editor tools, utilities, and workflow helpers.">
-    <meta name="theme-color" content="#0f1517">
-    <title>AC_Tools | Unity Tools</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="assets/ac-tools-mark.svg">
+    <meta name="description" content="AC_Tools documentation viewer for Unity tools by Alex Crean.">
+    <meta name="theme-color" content="#141414">
+    <title>AC_Tools | Documentation</title>
+    <link rel="icon" type="image/svg+xml" href="assets/branding/ac-monogram.svg?v=publish-5">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="page-shell">
+    <a class="skip-link" href="#mainContent">Skip to main content</a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">
+        Menu
+    </button>
+
+    <div class="app-shell">
         <aside class="sidebar" id="sidebar">
-            <div class="brand">
-                <img src="assets/ac-tools-mark.svg" alt="AC Tools logo" class="brand-mark">
-                <div>
-                    <p class="eyebrow">Unity Workflow Suite</p>
-                    <h1>AC_Tools</h1>
+            <div class="sidebar-head">
+                <div class="site-header site-header-sidebar">
+                    <a class="site-home-link" id="brandHome" href="/">
+                        <p class="site-kicker">Unity Tools By</p>
+                        <p class="site-title">ALEX CREAN</p>
+                    </a>
                 </div>
+
+                <a class="home-link" id="homeNavLink" href="/">
+                    <span class="home-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M4.5 11.2 12 5l7.5 6.2v7.3a.5.5 0 0 1-.5.5h-4.6a.5.5 0 0 1-.5-.5v-4.2h-3.8v4.2a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                    </span>
+                    <span class="home-link-text">Home</span>
+                </a>
+                <label class="search-wrap" for="searchInput">
+                    <span class="visually-hidden">Search documentation</span>
+                    <input id="searchInput" type="search" placeholder="Search the docs or #ref">
+                </label>
             </div>
 
-            <p class="sidebar-copy">
-                A GitHub Pages-friendly front-end for presenting a polished collection of Unity tools, docs, and workflow helpers.
-            </p>
+            <nav id="navGroups" class="nav-groups" aria-label="Documentation navigation"></nav>
 
-            <nav class="sidebar-nav" aria-label="Section navigation">
-                <a href="#overview" class="nav-link is-active">Overview</a>
-                <a href="#toolkit" class="nav-link">Toolkit</a>
-                <a href="#workflow" class="nav-link">Workflow</a>
-                <a href="#install" class="nav-link">Install</a>
-                <a href="#faq" class="nav-link">FAQ</a>
-            </nav>
+            <footer class="sidebar-footer">
+                <div class="footer-links">
+                    <p class="footer-message">Feel free to reach out and or connect!</p>
+                    <div class="footer-actions">
+                        <a id="personalLink" class="footer-link" href="#" target="_blank" rel="noreferrer">Personal</a>
+                        <a id="linkedinLink" class="footer-link" href="#" target="_blank" rel="noreferrer">LinkedIn</a>
+                    </div>
+                </div>
 
-            <div class="sidebar-panel">
-                <p class="panel-label">Hosting Scope</p>
-                <p class="panel-body">
-                    Static rendering only. No server-side logic, no databases, no hidden backend dependencies.
-                </p>
-            </div>
+                <button
+                    class="access-toggle"
+                    id="accessToggle"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="accessPanel"
+                >
+                    <span class="access-toggle-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M12 2.8a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Zm-7 6.4h14v2.1h-4.5v9.9h-2.2v-5.7h-.6v5.7H9.5v-9.9H5Z"/>
+                        </svg>
+                    </span>
+                    <span class="access-toggle-text">Accessibility</span>
+                    <span class="access-toggle-chevron" aria-hidden="true"></span>
+                </button>
+
+                <section class="access-panel doc-accordion-body" id="accessPanel" hidden aria-label="Accessibility settings">
+                    <div class="access-panel-header">
+                        <p class="access-panel-copy">Local browser preferences. No cookies.</p>
+                    </div>
+
+                    <form id="accessForm" class="access-form">
+                        <fieldset class="access-fieldset">
+                            <legend class="access-legend">Text Size</legend>
+                            <div class="setting-choice-list">
+                                <label class="setting-choice">
+                                    <input type="radio" name="textSize" value="default" checked>
+                                    <span>Default</span>
+                                </label>
+                                <label class="setting-choice">
+                                    <input type="radio" name="textSize" value="large">
+                                    <span>Large</span>
+                                </label>
+                                <label class="setting-choice">
+                                    <input type="radio" name="textSize" value="xlarge">
+                                    <span>Larger</span>
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="access-fieldset">
+                            <legend class="access-legend">Contrast</legend>
+                            <div class="setting-choice-list">
+                                <label class="setting-choice">
+                                    <input type="radio" name="contrast" value="default" checked>
+                                    <span>Default</span>
+                                </label>
+                                <label class="setting-choice">
+                                    <input type="radio" name="contrast" value="high">
+                                    <span>High</span>
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <label class="setting-toggle">
+                            <input type="checkbox" name="reduceMotion">
+                            <span>Reduce motion</span>
+                        </label>
+
+                        <label class="setting-toggle">
+                            <input type="checkbox" name="underlineLinks">
+                            <span>Underline links</span>
+                        </label>
+
+                        <label class="setting-toggle">
+                            <input type="checkbox" name="focusBoost">
+                            <span>Enhanced focus</span>
+                        </label>
+
+                        <div class="access-actions">
+                            <button class="access-action-button" id="accessCollapse" type="button">Collapse</button>
+                            <button
+                                class="access-action-button access-reset-hold"
+                                id="accessReset"
+                                type="button"
+                                aria-label="Hold to reset accessibility settings"
+                            >
+                                <span class="access-reset-hold-fill" aria-hidden="true"></span>
+                                <span class="access-reset-hold-text">Hold to Reset</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <button
+                    class="access-toggle ai-toggle"
+                    id="aiToggle"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="aiPanel"
+                >
+                    <span class="access-toggle-icon ai-toggle-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M12 2 14.7 8.3 21 11l-6.3 2.7L12 20l-2.7-6.3L3 11l6.3-2.7Z"></path>
+                        </svg>
+                    </span>
+                    <span class="access-toggle-text">AI Usage</span>
+                    <span class="access-toggle-chevron" aria-hidden="true"></span>
+                </button>
+
+                <section class="access-panel ai-panel" id="aiPanel" hidden aria-label="AI usage declaration">
+                    <p class="access-declaration-copy">AI was used to assist with parts of this documentation site, some debugging, and some SVG creation. No AC_Tools Unity asset or production tool logic was generated with AI.</p>
+                </section>
+            </footer>
         </aside>
 
-        <main class="content">
-            <header class="topbar">
-                <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">
-                    Menu
-                </button>
-                <div class="topbar-meta">
-                    <span class="meta-pill">Docs Inspired</span>
-                    <span class="meta-pill">GitHub Pages Ready</span>
-                </div>
+        <main class="content" id="mainContent" tabindex="-1">
+            <header class="page-header">
+                <p id="pageGroup" class="page-group"></p>
+                <h1 id="pageTitle"></h1>
+                <p id="pageSummary" class="page-summary"></p>
+                <div id="pageOverview" class="page-overview" hidden></div>
+                <p id="pageMeta" class="page-meta"></p>
             </header>
 
-            <section class="hero" id="overview">
-                <div class="hero-copy">
-                    <p class="eyebrow">Editor-first documentation landing page</p>
-                    <h2>Unity tools presented with a docs layout, but styled like a real product.</h2>
-                    <p class="hero-text">
-                        This front-end takes the familiar clarity of documentation sites and pushes it into a stronger brand direction:
-                        structured navigation, product framing, visual hierarchy, and a layout that works cleanly within GitHub Pages.
-                    </p>
-                    <div class="hero-actions">
-                        <a href="#toolkit" class="button button-primary">Explore the toolkit</a>
-                        <a href="#install" class="button button-secondary">View install flow</a>
-                    </div>
+            <section id="pageAssets" class="page-assets" hidden>
+                <div id="assetLocationCard" class="asset-location-card" hidden>
+                    <p class="asset-card-label">Asset Location</p>
+                    <p id="assetLocationPath" class="asset-location-path"></p>
                 </div>
-
-                <div class="hero-rail">
-                    <article class="signal-card">
-                        <p class="signal-label">Static-first</p>
-                        <p class="signal-value">Fast deployment</p>
-                        <p class="signal-copy">Plain HTML, CSS, and JS keeps this portable and GitHub-native.</p>
-                    </article>
-                    <article class="signal-card">
-                        <p class="signal-label">Docs DNA</p>
-                        <p class="signal-value">Clear navigation</p>
-                        <p class="signal-copy">Sidebar structure nods to the reference sites without cloning their look.</p>
-                    </article>
-                    <article class="signal-card">
-                        <p class="signal-label">Unity focus</p>
-                        <p class="signal-value">Tool-driven UX</p>
-                        <p class="signal-copy">Built to showcase helpers, utilities, and editor workflow improvements.</p>
-                    </article>
-                </div>
+                <div id="mediaGallery" class="media-gallery"></div>
             </section>
 
-            <section class="section" id="toolkit">
-                <div class="section-heading">
-                    <p class="eyebrow">Toolkit</p>
-                    <h3>Organize the suite like a real ecosystem</h3>
-                </div>
+            <section id="sectionList" class="section-list"></section>
 
-                <div class="feature-grid">
-                    <article class="feature-card">
-                        <p class="card-tag">01</p>
-                        <h4>Inspector Helpers</h4>
-                        <p>
-                            Present attributes, drawers, and editor extensions with concise summaries and expandable details.
-                        </p>
-                    </article>
-                    <article class="feature-card">
-                        <p class="card-tag">02</p>
-                        <h4>Scene Utilities</h4>
-                        <p>
-                            Highlight tools that speed up level setup, scene cleanup, and iteration inside the editor.
-                        </p>
-                    </article>
-                    <article class="feature-card">
-                        <p class="card-tag">03</p>
-                        <h4>Workflow Modules</h4>
-                        <p>
-                            Group tools by production stage so the site reads like a system, not a disconnected list of scripts.
-                        </p>
-                    </article>
-                    <article class="feature-card">
-                        <p class="card-tag">04</p>
-                        <h4>Documentation Notes</h4>
-                        <p>
-                            Keep installation, usage, and examples close to each tool without needing any backend rendering.
-                        </p>
-                    </article>
+            <section id="pageAddonAssets" class="page-assets page-addon-assets" hidden>
+                <div class="addon-divider">
+                    <p class="addon-divider-label">Hand-Off Add-on</p>
                 </div>
-
-                <div class="showcase-panel">
-                    <div>
-                        <p class="eyebrow">Why this structure works</p>
-                        <h4>It feels like a docs portal, but the homepage still sells the toolkit.</h4>
-                    </div>
-                    <p>
-                        The reference sites succeed because they make navigation effortless. This build keeps that clarity, then adds
-                        stronger typography, bolder cards, and more product-oriented framing so AC_Tools feels authored rather than templated.
-                    </p>
-                </div>
+                <div id="addonMediaGallery" class="media-gallery"></div>
             </section>
 
-            <section class="section" id="workflow">
-                <div class="section-heading">
-                    <p class="eyebrow">Workflow</p>
-                    <h3>A GitHub Pages-safe approach</h3>
-                </div>
+            <section id="changelogMount" class="section-list changelog-mount" hidden></section>
 
-                <div class="timeline">
-                    <article class="timeline-step">
-                        <span class="step-index">01</span>
-                        <div>
-                            <h4>Static shell</h4>
-                            <p>Everything renders client-side, so deployment stays simple and predictable.</p>
-                        </div>
-                    </article>
-                    <article class="timeline-step">
-                        <span class="step-index">02</span>
-                        <div>
-                            <h4>Content sections</h4>
-                            <p>Each tool or category can live in its own section, page, or markdown-backed page later if needed.</p>
-                        </div>
-                    </article>
-                    <article class="timeline-step">
-                        <span class="step-index">03</span>
-                        <div>
-                            <h4>Light interaction</h4>
-                            <p>Only navigation state, mobile menu behavior, and anchor focus are handled in JavaScript.</p>
-                        </div>
-                    </article>
-                </div>
-
-                <div class="code-panel">
-                    <div class="code-header">
-                        <span>Deployment Notes</span>
-                        <span>Static Hosting</span>
-                    </div>
-                    <pre><code>/
-|- index.html
-|- styles.css
-|- script.js
-`- assets/
-
-Best fit for GitHub Pages:
-- pure static files
-- optional Jekyll later
-- optional client-side GitHub API fetches
-- no backend assumptions</code></pre>
-                </div>
-            </section>
-
-            <section class="section" id="install">
-                <div class="section-heading">
-                    <p class="eyebrow">Install</p>
-                    <h3>Show the entry path clearly</h3>
-                </div>
-
-                <div class="install-grid">
-                    <article class="install-card">
-                        <h4>Package Import</h4>
-                        <p>Use this area for Unity package import instructions, version support, and dependency notes.</p>
-                    </article>
-                    <article class="install-card">
-                        <h4>Quick Start</h4>
-                        <p>Give users the fastest possible path to their first successful setup and first visible result.</p>
-                    </article>
-                    <article class="install-card">
-                        <h4>Examples</h4>
-                        <p>Link out to demo scenes, screenshots, or short walkthrough clips once those assets are ready.</p>
-                    </article>
-                </div>
-            </section>
-
-            <section class="section" id="faq">
-                <div class="section-heading">
-                    <p class="eyebrow">FAQ</p>
-                    <h3>Important constraint to keep front of mind</h3>
-                </div>
-
-                <div class="faq-list">
-                    <article class="faq-item">
-                        <h4>Can this site use backend rendering?</h4>
-                        <p>No. GitHub Pages is best treated as static hosting, so everything here is designed around front-end rendering only.</p>
-                    </article>
-                    <article class="faq-item">
-                        <h4>Can it still feel dynamic?</h4>
-                        <p>Yes. Filtering, section highlighting, tabs, theme changes, and GitHub API reads can all happen client-side.</p>
-                    </article>
-                    <article class="faq-item">
-                        <h4>What should be replaced next?</h4>
-                        <p>Real tool names, screenshots, package links, and documentation copy once your AC_Tools content list is ready.</p>
-                    </article>
-                </div>
-            </section>
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script src="tools.js?v=publish-7"></script>
+    <script src="script.js?v=publish-7"></script>
 </body>
 </html>
+

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#141414">
+    <title>AC_Tools | 404</title>
+    <link rel="icon" type="image/svg+xml" href="assets/branding/ac-monogram.svg?v=publish-6">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .error-shell {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+            max-width: 1500px;
+            min-height: 100vh;
+            margin: 0 auto;
+        }
+
+        .error-sidebar {
+            position: sticky;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 28px 18px 28px 26px;
+            overflow: auto;
+            border-right: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(20, 20, 20, 0.98), rgba(20, 20, 20, 0.94));
+        }
+
+        .error-sidebar-head {
+            display: grid;
+            gap: 12px;
+            padding-bottom: 16px;
+        }
+
+        .error-nav-groups {
+            display: grid;
+            gap: 14px;
+        }
+
+        .error-sidebar-footer {
+            display: grid;
+            gap: 14px;
+            margin-top: auto;
+            padding-top: 28px;
+        }
+
+        .error-main {
+            display: grid;
+            align-items: center;
+            padding: 56px 48px;
+        }
+
+        .error-panel {
+            max-width: 760px;
+        }
+
+        .error-kicker {
+            margin: 0 0 12px;
+            color: var(--accent);
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .error-title {
+            margin: 0;
+            color: var(--text);
+            font-size: clamp(2.4rem, 7vw, 4.6rem);
+            line-height: 0.98;
+            text-transform: uppercase;
+        }
+
+        .error-copy {
+            margin: 24px 0 0;
+            max-width: 680px;
+            color: var(--text-muted);
+            font-size: 1.04rem;
+            line-height: 1.9;
+        }
+
+        .error-copy strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .error-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 0 16px;
+            color: var(--header-accent);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-weight: 700;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+        }
+
+        .error-button-primary {
+            background: var(--accent-fill);
+            border-color: var(--accent-border);
+        }
+
+        .error-button-primary:hover,
+        .error-button-primary:focus-visible {
+            background: var(--accent-fill);
+            border-color: rgba(255, 249, 227, 0.82);
+            box-shadow: inset 0 0 0 2px rgba(255, 249, 227, 0.52);
+        }
+
+        .error-button-secondary {
+            background: #404040;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .error-button-secondary:hover,
+        .error-button-secondary:focus-visible {
+            background: #494949;
+            border-color: rgba(255, 249, 227, 0.82);
+            box-shadow: inset 0 0 0 2px rgba(255, 249, 227, 0.42);
+        }
+
+        .error-note {
+            margin: 18px 0 0;
+            color: rgba(255, 249, 227, 0.72);
+            font-size: 0.88rem;
+            line-height: 1.7;
+        }
+
+        .error-home-icon {
+            display: inline-flex;
+            width: 14px;
+            height: 14px;
+            flex: 0 0 14px;
+        }
+
+        .error-home-icon svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            fill: currentColor;
+        }
+
+        .error-search {
+            width: 100%;
+            min-height: 38px;
+            padding: 0 12px;
+            color: rgba(20, 20, 20, 0.68);
+            background: #f4f3ef;
+            border: 1px solid rgba(255, 249, 227, 0.9);
+            border-radius: var(--radius);
+        }
+
+        .error-search[readonly] {
+            cursor: default;
+        }
+
+        .error-search:focus {
+            outline: none;
+        }
+
+        .error-footer-copy {
+            margin: 0;
+            color: var(--text);
+            line-height: 1.9;
+        }
+
+        .error-footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        @media (max-width: 900px) {
+            .error-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .error-sidebar {
+                position: static;
+                height: auto;
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .error-main {
+                padding: 36px 22px 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#errorMain">Skip to main content</a>
+
+    <div class="error-shell">
+        <aside class="error-sidebar" aria-label="Documentation navigation">
+            <div class="error-sidebar-head">
+                <div class="site-header site-header-sidebar">
+                    <a class="site-home-link" href="./" id="brandHome">
+                        <p class="site-kicker">Unity Tools By</p>
+                        <p class="site-title">ALEX CREAN</p>
+                    </a>
+                </div>
+
+                <a class="home-link is-active" id="docsHomeLink" href="./">
+                    <span class="home-link-icon error-home-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                            <path d="M12 4.2 4.4 10v9.3h5.3v-5.8h4.6v5.8h5.3V10L12 4.2Z"></path>
+                        </svg>
+                    </span>
+                    <span class="home-link-text">Home</span>
+                </a>
+
+                <input class="error-search" type="text" value="Search the docs or #ref" readonly aria-label="Search the docs">
+
+                <div class="error-nav-groups" aria-label="Published documentation">
+                    <section class="nav-group">
+                        <div class="group-bar">
+                            <a class="group-link" href="./?route=%2Fshared">Shared</a>
+                            <button class="group-toggle" type="button" aria-hidden="true" tabindex="-1"></button>
+                        </div>
+                        <div class="page-list">
+                            <a class="page-link" href="./?route=%2Fshared%2Fcolourconfiguration">Colour Configuration</a>
+                        </div>
+                    </section>
+
+                    <section class="nav-group">
+                        <div class="group-bar">
+                            <a class="group-link" href="./?route=%2Fqol">Quality Of Life</a>
+                            <button class="group-toggle" type="button" aria-hidden="true" tabindex="-1"></button>
+                        </div>
+                        <div class="page-list">
+                            <a class="page-link" href="./?route=%2Fqol%2Fdocumentinside">Document Inside</a>
+                            <a class="page-link" href="./?route=%2Fqol%2Fdontedit">Don't Edit</a>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div class="error-sidebar-footer">
+                <p class="error-footer-copy">Feel free to reach out and or connect!</p>
+                <div class="error-footer-links">
+                    <a class="footer-link" href="https://www.alexcrean.com/" target="_blank" rel="noreferrer">Personal</a>
+                    <a class="footer-link" href="https://www.linkedin.com/in/alex-crean/" target="_blank" rel="noreferrer">LinkedIn</a>
+                </div>
+
+                <button class="access-toggle" type="button" aria-expanded="false" aria-controls="accessPanel404">
+                    <span class="access-toggle-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M12 2.8a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Zm-7 6.4h14v2.1h-4.5v9.9h-2.2v-5.7h-.6v5.7H9.5v-9.9H5Z"/>
+                        </svg>
+                    </span>
+                    <span class="access-toggle-text">Accessibility</span>
+                    <span class="access-toggle-chevron" aria-hidden="true"></span>
+                </button>
+                <section class="access-panel" id="accessPanel404" hidden aria-label="Accessibility settings">
+                    <div class="access-panel-header">
+                        <p class="access-panel-copy">Local browser preferences. No cookies.</p>
+                    </div>
+
+                    <form class="access-form" id="accessForm404">
+                        <fieldset class="access-fieldset">
+                            <legend class="access-legend">Text Size</legend>
+                            <div class="setting-choice-list">
+                                <label class="setting-choice"><input type="radio" name="textSize" value="default" checked> Default</label>
+                                <label class="setting-choice"><input type="radio" name="textSize" value="large"> Large</label>
+                                <label class="setting-choice"><input type="radio" name="textSize" value="xlarge"> Larger</label>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="access-fieldset">
+                            <legend class="access-legend">Contrast</legend>
+                            <div class="setting-choice-list">
+                                <label class="setting-choice"><input type="radio" name="contrast" value="default" checked> Default</label>
+                                <label class="setting-choice"><input type="radio" name="contrast" value="high"> High</label>
+                            </div>
+                        </fieldset>
+
+                        <label class="setting-toggle"><input type="checkbox" name="reduceMotion"> Reduce motion</label>
+                        <label class="setting-toggle"><input type="checkbox" name="underlineLinks"> Underline links</label>
+                        <label class="setting-toggle"><input type="checkbox" name="focusBoost"> Enhanced focus</label>
+
+                        <div class="access-actions">
+                            <button class="access-action-button" id="accessCollapse404" type="button">Collapse</button>
+                            <button
+                                class="access-action-button access-reset-hold"
+                                id="accessReset404"
+                                type="button"
+                                aria-label="Hold to reset accessibility settings"
+                            >
+                                <span class="access-reset-hold-fill" aria-hidden="true"></span>
+                                <span class="access-reset-hold-text">Hold to Reset</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <button class="access-toggle ai-toggle" id="aiToggle404" type="button" aria-expanded="false" aria-controls="aiPanel404">
+                    <span class="access-toggle-icon ai-toggle-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M12 2 14.7 8.3 21 11l-6.3 2.7L12 20l-2.7-6.3L3 11l6.3-2.7Z"></path>
+                        </svg>
+                    </span>
+                    <span class="access-toggle-text">AI Usage</span>
+                    <span class="access-toggle-chevron" aria-hidden="true"></span>
+                </button>
+
+                <section class="access-panel ai-panel" id="aiPanel404" hidden aria-label="AI usage declaration">
+                    <p class="access-declaration-copy">AI was used to assist with parts of this documentation site, some debugging, and some SVG creation. No AC_Tools Unity asset or production tool logic was generated with AI.</p>
+                </section>
+            </div>
+        </aside>
+
+        <main class="error-main" id="errorMain" tabindex="-1">
+            <section class="error-panel" aria-labelledby="errorTitle">
+                <p class="error-kicker">Not Found</p>
+                <h1 class="error-title" id="errorTitle">404</h1>
+                <p class="error-copy">
+                    <strong>This route does not exist.</strong> It may have moved, been unpublished, or never been part of the current AC_Tools documentation set.
+                </p>
+                <p class="error-copy">
+                    Use the main documentation index to get back to the published pages, or return to the previous page if you followed an outdated link.
+                </p>
+
+                <div class="error-actions">
+                    <a class="error-button error-button-primary" id="docsHomeCta" href="./">Open Docs Home</a>
+                    <a class="error-button error-button-secondary" href="javascript:history.back()">Go Back</a>
+                </div>
+
+                <p class="error-note" id="errorNote">
+                    If this address is a valid docs route, the page will continue automatically.
+                </p>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        (function () {
+            const ACCESS_STORAGE_KEY = "ac_tools_accessibility";
+            const defaultAccessibilityPrefs = {
+                textSize: "default",
+                contrast: "default",
+                reduceMotion: false,
+                underlineLinks: false,
+                focusBoost: false
+            };
+
+            const knownRoots = new Set([
+                "shared",
+                "qol",
+                "qualityoflife",
+                "presentation",
+                "betterpresentation",
+                "leveldesign",
+                "leveldesigner",
+                "leveldesigntoolbox"
+            ]);
+
+            const docsHomeLink = document.getElementById("docsHomeLink");
+            const docsHomeCta = document.getElementById("docsHomeCta");
+            const errorNote = document.getElementById("errorNote");
+            const accessToggle = document.querySelector(".access-toggle");
+            const accessPanel = document.getElementById("accessPanel404");
+            const aiToggle = document.getElementById("aiToggle404");
+            const aiPanel = document.getElementById("aiPanel404");
+            const accessForm = document.getElementById("accessForm404");
+            const accessReset = document.getElementById("accessReset404");
+            const params = new URLSearchParams(window.location.search);
+            const explicitRoute = params.get("route");
+            const hash = window.location.hash || "";
+
+            function loadAccessibilityPrefs() {
+                try {
+                    const raw = window.localStorage.getItem(ACCESS_STORAGE_KEY);
+                    if (!raw) {
+                        return { ...defaultAccessibilityPrefs };
+                    }
+
+                    return {
+                        ...defaultAccessibilityPrefs,
+                        ...JSON.parse(raw)
+                    };
+                } catch {
+                    return { ...defaultAccessibilityPrefs };
+                }
+            }
+
+            function saveAccessibilityPrefs(prefs) {
+                try {
+                    window.localStorage.setItem(ACCESS_STORAGE_KEY, JSON.stringify(prefs));
+                } catch {}
+            }
+
+            function toggleBodyDataset(name, value, defaultValue) {
+                if (!value || value === defaultValue) {
+                    delete document.body.dataset[name];
+                    return;
+                }
+
+                document.body.dataset[name] = value;
+            }
+
+            function applyAccessibilityPrefs(prefs) {
+                toggleBodyDataset("textSize", prefs.textSize, "default");
+                toggleBodyDataset("contrast", prefs.contrast, "default");
+                toggleBodyDataset("motion", prefs.reduceMotion ? "reduced" : "", "");
+                toggleBodyDataset("links", prefs.underlineLinks ? "underlined" : "", "");
+                toggleBodyDataset("focus", prefs.focusBoost ? "boosted" : "", "");
+
+                if (prefs.reduceMotion) {
+                    document.documentElement.dataset.motion = "reduced";
+                } else {
+                    delete document.documentElement.dataset.motion;
+                }
+            }
+
+            function syncAccessibilityForm(prefs) {
+                if (!accessForm) {
+                    return;
+                }
+
+                const textSize = accessForm.elements.namedItem("textSize");
+                const contrast = accessForm.elements.namedItem("contrast");
+
+                Array.from(textSize).forEach(function (input) {
+                    input.checked = input.value === prefs.textSize;
+                });
+
+                Array.from(contrast).forEach(function (input) {
+                    input.checked = input.value === prefs.contrast;
+                });
+
+                accessForm.elements.namedItem("reduceMotion").checked = prefs.reduceMotion;
+                accessForm.elements.namedItem("underlineLinks").checked = prefs.underlineLinks;
+                accessForm.elements.namedItem("focusBoost").checked = prefs.focusBoost;
+            }
+
+            function openAccessPanel() {
+                if (!accessPanel || !accessToggle) {
+                    return;
+                }
+
+                accessPanel.hidden = false;
+                accessToggle.setAttribute("aria-expanded", "true");
+            }
+
+            function closeAccessPanel() {
+                if (!accessPanel || !accessToggle) {
+                    return;
+                }
+
+                accessPanel.hidden = true;
+                accessToggle.setAttribute("aria-expanded", "false");
+            }
+
+            function openAiPanel() {
+                if (!aiPanel || !aiToggle) {
+                    return;
+                }
+
+                aiPanel.hidden = false;
+                aiToggle.setAttribute("aria-expanded", "true");
+            }
+
+            function closeAiPanel() {
+                if (!aiPanel || !aiToggle) {
+                    return;
+                }
+
+                aiPanel.hidden = true;
+                aiToggle.setAttribute("aria-expanded", "false");
+            }
+
+            if (accessToggle && accessPanel && accessForm && accessReset) {
+                let accessibilityPrefs = loadAccessibilityPrefs();
+                applyAccessibilityPrefs(accessibilityPrefs);
+                syncAccessibilityForm(accessibilityPrefs);
+
+                accessToggle.addEventListener("click", function () {
+                    if (accessPanel.hidden) {
+                        openAccessPanel();
+                        return;
+                    }
+
+                    closeAccessPanel();
+                });
+
+                accessForm.addEventListener("change", function () {
+                    accessibilityPrefs = {
+                        textSize: accessForm.elements.namedItem("textSize").value,
+                        contrast: accessForm.elements.namedItem("contrast").value,
+                        reduceMotion: accessForm.elements.namedItem("reduceMotion").checked,
+                        underlineLinks: accessForm.elements.namedItem("underlineLinks").checked,
+                        focusBoost: accessForm.elements.namedItem("focusBoost").checked
+                    };
+
+                    applyAccessibilityPrefs(accessibilityPrefs);
+                    saveAccessibilityPrefs(accessibilityPrefs);
+                });
+
+                accessReset.addEventListener("click", function () {
+                    accessibilityPrefs = { ...defaultAccessibilityPrefs };
+                    applyAccessibilityPrefs(accessibilityPrefs);
+                    syncAccessibilityForm(accessibilityPrefs);
+                    saveAccessibilityPrefs(accessibilityPrefs);
+                });
+            }
+
+            if (aiToggle && aiPanel) {
+                aiToggle.addEventListener("click", function () {
+                    if (aiPanel.hidden) {
+                        openAiPanel();
+                        return;
+                    }
+
+                    closeAiPanel();
+                });
+            }
+
+            const segments = window.location.pathname
+                .split("/")
+                .filter(Boolean)
+                .filter(function (segment) {
+                    const lower = segment.toLowerCase();
+                    return lower !== "404.html" && lower !== "index.html";
+                });
+
+            const routeIndex = segments.findIndex(function (segment) {
+                return knownRoots.has(segment.toLowerCase());
+            });
+
+            const baseSegments = routeIndex === -1 ? segments : segments.slice(0, routeIndex);
+            const routeSegments = explicitRoute
+                ? []
+                : routeIndex === -1
+                    ? []
+                    : segments.slice(routeIndex);
+
+            const basePath = baseSegments.length ? "/" + baseSegments.join("/") : "";
+            const route = explicitRoute || (routeSegments.length ? "/" + routeSegments.join("/") : "/");
+            const shouldRedirect = Boolean(explicitRoute || routeSegments.length);
+            const redirectTarget = (basePath || "") + "/?route=" + encodeURIComponent(route) + hash;
+            const homeTarget = (basePath || "") + "/";
+
+            if (docsHomeLink) {
+                docsHomeLink.href = homeTarget;
+            }
+
+            if (docsHomeCta) {
+                docsHomeCta.href = homeTarget;
+            }
+
+            if (!shouldRedirect) {
+                if (errorNote) {
+                    errorNote.textContent = "No matching documentation route was found.";
+                }
+                return;
+            }
+
+            if (errorNote) {
+                errorNote.textContent = "Recognised documentation route. Redirecting to the viewer now.";
+            }
+
+            window.setTimeout(function () {
+                window.location.replace(redirectTarget);
+            }, 500);
+
+            document.addEventListener("click", function (event) {
+                if (!aiPanel || !aiToggle || aiPanel.hidden) {
+                    return;
+                }
+
+                const target = event.target;
+                if (!(target instanceof Node)) {
+                    return;
+                }
+
+                if (aiPanel.contains(target) || aiToggle.contains(target)) {
+                    return;
+                }
+
+                closeAiPanel();
+            });
+        }());
+    </script>
+</body>
+</html>
+
