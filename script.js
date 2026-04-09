@@ -577,6 +577,7 @@ const buildIndexes = () => {
             const pageRoute = `/${group.slug}/${page.slug}`;
             const groupTitle = group.title;
             const pageTitle = page.title;
+            const hiddenInNav = Boolean(page.hiddenInNav);
             const pageSearchParts = [
                 page.title,
                 page.summary,
@@ -597,6 +598,7 @@ const buildIndexes = () => {
                         title: section.heading,
                         caption: (section.body || [])[0] || "",
                         fragment: sectionId,
+                        hiddenInNav,
                         searchText: buildSearchText(
                             section.heading,
                             ...(section.body || []),
@@ -618,6 +620,7 @@ const buildIndexes = () => {
                         title: item.title || "Reference",
                         caption: item.caption || "",
                         fragment: getReferenceId(item),
+                        hiddenInNav,
                         searchText: buildSearchText(
                             item.group,
                             item.title,
@@ -642,6 +645,7 @@ const buildIndexes = () => {
                         title: sectionGroup.title,
                         caption: (sectionGroup.summary || [])[0] || "",
                         fragment: sectionGroupId,
+                        hiddenInNav,
                         searchText: buildSearchText(
                             sectionGroup.title,
                             ...(sectionGroup.summary || []),
@@ -662,6 +666,7 @@ const buildIndexes = () => {
                             title: section.heading,
                             caption: (section.body || [])[0] || "",
                             fragment: sectionId,
+                            hiddenInNav,
                             searchText: buildSearchText(
                                 sectionGroup.title,
                                 section.heading,
@@ -698,6 +703,7 @@ const buildIndexes = () => {
                         title: `${changelogGroup.title} Changelog`,
                         caption: (changelogGroup.summary || [])[0] || "",
                         fragment: changelogGroupId,
+                        hiddenInNav,
                         searchText: buildSearchText(
                             "changelog",
                             changelogGroup.title,
@@ -716,6 +722,7 @@ const buildIndexes = () => {
                             title: `${changelogGroup.title} ${entryItem.version}`,
                             caption: entryItem.label || "",
                             fragment: getVersionNodeId(entryItem.version, changelogGroupId),
+                            hiddenInNav,
                             searchText: buildSearchText(
                                 "changelog",
                                 changelogGroup.title,
@@ -845,7 +852,7 @@ const getVisibleGroups = () => {
 const getReferenceResults = () => {
     const tokens = tokenizeSearchQuery(getReferenceQuery(searchQuery));
 
-    return referenceSearchIndex.filter((item) => matchesSearchTokens(item.searchText, tokens));
+    return referenceSearchIndex.filter((item) => !item.hiddenInNav && matchesSearchTokens(item.searchText, tokens));
 };
 
 const appendSectionContent = (body, section) => {
