@@ -836,6 +836,36 @@ input {
     display: none !important;
 }
 
+.page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.page-actions[hidden] {
+    display: none !important;
+}
+
+.page-action-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 12px;
+    color: var(--header-accent);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.page-action-link:hover,
+.page-action-link:focus-visible {
+    color: var(--text);
+    border-color: rgba(255, 249, 227, 0.82);
+    box-shadow: inset 0 0 0 2px rgba(255, 249, 227, 0.24);
+}
+
 .page-assets {
     display: grid;
     gap: 20px;
@@ -1100,7 +1130,7 @@ input {
     transition: transform 160ms ease;
 }
 
-.doc-accordion.is-open .doc-accordion-summary::after {
+.doc-accordion-summary[aria-expanded="true"]::after {
     transform: translateY(-50%) rotate(180deg);
 }
 
@@ -1207,7 +1237,7 @@ input {
     transition: transform 160ms ease;
 }
 
-.section-group.is-open .section-group-toggle-chevron {
+.section-group-toggle[aria-expanded="true"] .section-group-toggle-chevron {
     transform: rotate(-135deg);
 }
 
@@ -1255,17 +1285,67 @@ input {
 
 .changelog-root-body {
     display: grid;
-    gap: 24px;
+    gap: 18px;
+}
+
+.changelog-group {
+    padding: 0;
+    border: 0;
+    background: transparent;
 }
 
 .changelog-group .section-group-header {
+    min-height: 0;
+    padding: 0;
+}
+
+.changelog-group .section-group-summary {
+    font-size: 1rem;
+}
+
+.changelog-group .section-group-version {
+    margin-right: 8px;
+}
+
+.changelog-group .section-group-preview {
+    padding: 6px 0 0 0;
+}
+
+.changelog-group.is-open .section-group-preview {
     padding-bottom: 0;
+}
+
+.changelog-group .section-group-body {
+    gap: 14px;
+    padding-top: 10px;
+}
+
+.changelog-version {
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.changelog-version > .doc-accordion-summary {
+    padding: 0 28px 0 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    border: 0;
+    background: transparent;
+}
+
+.changelog-version > .doc-accordion-summary::after {
+    right: 2px;
+}
+
+.changelog-version-body {
+    padding: 8px 0 0;
 }
 
 .changelog-version-list,
 .changelog-version-children {
     display: grid;
-    gap: 14px;
+    gap: 10px;
 }
 
 .changelog-version-label {
@@ -1281,6 +1361,13 @@ input {
 .changelog-depth-3,
 .changelog-depth-4 {
     margin-left: 18px;
+    padding-left: 14px;
+    border-left: 1px solid var(--line);
+}
+
+.changelog-group .section-body p,
+.changelog-group .section-body li {
+    color: var(--text-muted);
 }
 
 .section-body p {

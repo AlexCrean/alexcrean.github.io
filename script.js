@@ -13,11 +13,14 @@ const accessCollapse = document.getElementById("accessCollapse");
 const accessReset = document.getElementById("accessReset");
 const personalLink = document.getElementById("personalLink");
 const linkedinLink = document.getElementById("linkedinLink");
+const publisherLink = document.getElementById("publisherLink");
+const contactLink = document.getElementById("contactLink");
 const pageGroup = document.getElementById("pageGroup");
 const pageTitle = document.getElementById("pageTitle");
 const pageSummary = document.getElementById("pageSummary");
 const pageOverview = document.getElementById("pageOverview");
 const pageMeta = document.getElementById("pageMeta");
+const pageActions = document.getElementById("pageActions");
 const pageAssets = document.getElementById("pageAssets");
 const assetLocationCard = document.getElementById("assetLocationCard");
 const assetLocationPath = document.getElementById("assetLocationPath");
@@ -499,6 +502,20 @@ const buildExternalUrl = (url) => {
     }
 
     return url;
+};
+
+const createActionLink = ({ href, label }) => {
+    const link = document.createElement("a");
+    link.className = "page-action-link";
+    link.href = buildExternalUrl(href);
+
+    if (!String(href).startsWith("mailto:")) {
+        link.target = "_blank";
+        link.rel = "noreferrer";
+    }
+
+    link.textContent = label;
+    return link;
 };
 
 const registerRoute = (entry) => {
@@ -1426,6 +1443,24 @@ const renderPage = () => {
         }
     }
 
+    if (pageActions) {
+        pageActions.innerHTML = "";
+        const actions = [];
+
+        if (entry.purchaseLink) {
+            actions.push({
+                href: entry.purchaseLink,
+                label: "Buy on Unity Asset Store"
+            });
+        }
+
+        actions.forEach((action) => {
+            pageActions.appendChild(createActionLink(action));
+        });
+
+        pageActions.hidden = actions.length === 0;
+    }
+
     const versionParts = [];
     if (entry.versionLabel) {
         versionParts.push(entry.versionLabel);
@@ -1452,6 +1487,14 @@ const renderPage = () => {
 
     if (linkedinLink) {
         linkedinLink.href = buildExternalUrl(viewer.links?.linkedin);
+    }
+
+    if (publisherLink) {
+        publisherLink.href = buildExternalUrl(viewer.links?.publisher);
+    }
+
+    if (contactLink) {
+        contactLink.href = "mailto:contact@alexcrean.com";
     }
 
     sectionList.innerHTML = "";

@@ -169,6 +169,12 @@ window.DOCS_VIEWER = {
                                     body: [
                                         "Initial public release of the shared window theme asset.",
                                         "Includes the Window Colours, Text Colours, and Code Colours blocks used across the current documentation and editor surfaces."
+                                    ],
+                                    list: [
+                                        "Shared window palette for headers, rows, separators, accents, toggle states, and warning colours.",
+                                        "Shared text palette for primary text, muted labels, link colours, and information surfaces.",
+                                        "Shared code palette for documentation previews and editor-side code samples.",
+                                        "One central theme asset used across AC_Tools windows and drawers."
                                     ]
                                 }
                             ]
@@ -217,6 +223,7 @@ window.DOCS_VIEWER = {
                     slug: "documentinside",
                     title: "Document Inside",
                     versionLabel: "Core 1.0 / Hand-Off Add-on 1.0",
+                    purchaseLink: "https://assetstore.unity.com/packages/slug/368278",
                     summary: "In-Unity documentation for assets, objects, folders, and scenes, built around a base notes workflow with Hand-Off available as a separate review add-on.",
                     packagePath: "Assets / AC_Tools / Quality Of Life Tools by AC / Better Documentation / Document Inside",
                     assetLocation: "Assets / AC_Tools / Quality Of Life Tools by AC / Better Documentation / Document Inside",
@@ -463,6 +470,13 @@ window.DOCS_VIEWER = {
                                     body: [
                                         "Initial public release of the base Document Inside workflow.",
                                         "Includes manual notes, XML-backed type descriptions, supported target handling, Inspector configuration, and project-side persistence."
+                                    ],
+                                    list: [
+                                        "Inspector notes for supported assets, objects, folders, and scenes.",
+                                        "XML-backed descriptions for code-driven targets.",
+                                        "Supported target handling for GameObjects, MonoBehaviours, ScriptableObjects, folders, and scenes.",
+                                        "Project-side persistence for notes and XML preferences.",
+                                        "Inspector configuration for target visibility and scope."
                                     ]
                                 }
                             ]
@@ -480,6 +494,13 @@ window.DOCS_VIEWER = {
                                     body: [
                                         "Initial public release of the Hand-Off add-on.",
                                         "Includes reviewer-facing notes, review status, project-wide review entry, and blocked or reviewed markers."
+                                    ],
+                                    list: [
+                                        "Reviewer-facing Hand-Off notes inside the same Information surface.",
+                                        "Review status tracking on the selected target.",
+                                        "Project-wide Review window entry from Developer / AC_Tools / Review.",
+                                        "Blocked and reviewed markers for quick status reading.",
+                                        "Project-side persistence for Hand-Off records and review state."
                                     ]
                                 }
                             ]
@@ -551,6 +572,7 @@ window.DOCS_VIEWER = {
                     slug: "dontedit",
                     title: "Don't Edit",
                     version: "1.0",
+                    purchaseLink: "https://assetstore.unity.com/packages/slug/370620",
                     summary: "Locking and protection for high-risk assets and objects, with visible or hidden modes and blocked editor actions.",
                     packagePath: "Assets / AC_Tools / Quality Of Life Tools by AC / Better Documentation / Don't Edit",
                     mediaHeading: "Unity References",
@@ -609,19 +631,6 @@ window.DOCS_VIEWER = {
                                 "Use DontEditButSee when the object should remain visible but read-only. Use DontEditOrSee when normal selection and opening should be blocked as well.",
                                 "The config asset is the shared rule set for the tool. It decides whether locked content can still be edited, whether hidden locks block selection and opening, whether scene tools should disappear for locked selections, and whether lock actions should log feedback while you work."
                             ]
-                        },
-                        {
-                            heading: "Feature List",
-                            list: [
-                                "Two lock modes: visible read-only and hidden protected.",
-                                "Lock and unlock actions from both the Assets and GameObject menus.",
-                                "Dedicated Don't Edit window for quick lock actions, configuration, and locked item management.",
-                                "Selection filtering for hidden locks and blocked opening of hidden locked assets.",
-                                "Blocked delete, duplicate, rename, cut, paste, move, and asset modification operations for locked content.",
-                                "Undo-based protection for property edits on locked targets.",
-                                "Hierarchy and Project window badges, plus an inspector lock strip with inline unlock action.",
-                                "Optional hiding of scene tools while locked content is selected."
-                            ]
                         }
                     ],
                     changelogGroups: [
@@ -638,6 +647,15 @@ window.DOCS_VIEWER = {
                                     body: [
                                         "Initial public release of the Don't Edit safety workflow.",
                                         "Includes visible and hidden lock modes, the main window, config asset support, menu entry points, and protected editing behavior."
+                                    ],
+                                    list: [
+                                        "Visible read-only and hidden protected lock modes.",
+                                        "Lock and unlock actions from the Assets and GameObject menus.",
+                                        "Main Don't Edit window for quick locking, configuration, and locked item review.",
+                                        "Selection filtering and blocked opening for hidden locked targets.",
+                                        "Protected delete, duplicate, rename, cut, paste, move, and asset modification handling.",
+                                        "Hierarchy, Project window, and Inspector lock indicators.",
+                                        "Optional hiding of scene tools while locked content is selected."
                                     ]
                                 }
                             ]
