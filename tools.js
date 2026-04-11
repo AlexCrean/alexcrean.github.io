@@ -9,14 +9,18 @@ window.DOCS_VIEWER = {
     },
     home: {
         route: "/",
-        title: "About",
-        group: "Documentation Viewer",
-        summary: "Practical Unity production tools built from real project work.",
+        title: "Tools I Built For Unity",
+        group: "Alex Crean",
+        summary: "I made these to cut down the clutter, mistakes, and mental load that build up in Unity.",
         packagePath: "Assets / AC_Tools",
         actions: [
             {
                 href: "https://assetstore.unity.com/publishers/140384",
                 label: "See My Unity Publisher Profile"
+            },
+            {
+                href: "https://www.alexcrean.com/",
+                label: "Visit alexcrean.com"
             }
         ],
         mediaHeading: "Peek at Upcoming Production Tools",
@@ -34,8 +38,51 @@ window.DOCS_VIEWER = {
                 heading: "Brief Description",
                 defaultOpen: false,
                 body: [
-                    "Made from the tools I kept wishing existed while shipping everything from game jams to long, collaborative Unity projects.",
-                    "The focus stays the same across all of them: clearer context, safer edits, and making the editor more personable."
+                    "These tools came from real production pressure, not theory.",
+                    "I lecture and run Serious Point Games as CTO, and I keep seeing the same issues across teams: context gets lost, notes drift out of date, and avoidable mistakes slow everything down. I have run into the same problems myself.",
+                    "So I built the tools I needed, then refined them through actual use in production, including Ski Lodge Murder and my own personal game projects.",
+                    "Made for Removing Pain Points: I make these for the way I work, but not just for me.",
+                    "They are for students learning their way around the editor. They are for teams handing scenes over. They are for anyone opening a project and thinking, \"Right, what am I looking at?\"",
+                    "If a tool helps someone get oriented faster or stops one bad edit, it earns its place."
+                ]
+            },
+            {
+                heading: "Why I Am Making These Unity Tools",
+                defaultOpen: true,
+                body: [
+                    "I teach. I build. I watch where people get stuck.",
+                    "Unity asks a lot from memory. It hides important context. The learning curve is steep, and big projects make that worse.",
+                    "These tools try to take some weight off. Less hunting around. Less guesswork. Fewer avoidable mistakes."
+                ]
+            },
+            {
+                heading: "Read Other Commonly Asked Questions",
+                defaultOpen: true,
+                faqList: [
+                    {
+                        question: "What are these tools actually for?",
+                        answer: "They keep Unity work clearer. Less hunting for context. Less guesswork. Less chance of changing the wrong thing."
+                    },
+                    {
+                        question: "How do I keep notes on a prefab, scene, folder, or object?",
+                        answer: "Document Inside keeps the note on the thing you are working on instead of pushing it off into a separate doc."
+                    },
+                    {
+                        question: "How do I keep hand-off or review notes inside Unity?",
+                        answer: "Document Inside with the Hand-Off add-on lets that review context stay attached to the asset or scene instead of getting lost in chat."
+                    },
+                    {
+                        question: "How do I keep links to docs or reference pages in the project?",
+                        answer: "Document Outside stores those links as Unity assets, so they stay in the project instead of vanishing into bookmarks."
+                    },
+                    {
+                        question: "How do I stop someone editing the wrong thing?",
+                        answer: "Don't Edit adds friction around high-risk assets and objects before someone renames, opens, or changes something they should have left alone."
+                    },
+                    {
+                        question: "Is this runtime code?",
+                        answer: "No. This is editor-side tooling."
+                    }
                 ]
             }
         ]
@@ -43,9 +90,9 @@ window.DOCS_VIEWER = {
     groups: [
         {
             slug: "shared",
-            title: "Shared",
+            title: "Shared Tool Settings",
             landing: {
-                title: "Shared",
+                title: "Shared Tool Settings",
                 summary: "Common foundations used across AC_Tools, including themes, editor chrome, compatibility helpers, and reusable visual language.",
                 packagePath: "Assets / AC_Tools / AC_Tool_Shared",
                 sections: [
@@ -185,10 +232,10 @@ window.DOCS_VIEWER = {
         },
         {
             slug: "qol",
-            title: "Quality Of Life",
+            title: "Quality Of Life Tools",
             aliases: ["/qualityoflife"],
             landing: {
-                title: "Quality Of Life",
+                title: "Quality Of Life Tools",
                 aliases: ["/qualityoflife"],
                 summary: "Documentation, review, navigation, and safety tooling for production Unity work.",
                 packagePath: "Assets / AC_Tools / Quality Of Life Tools by AC",

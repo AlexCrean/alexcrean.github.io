@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://alexcrean.github.io/</loc>
+  </url>
+  <url>
+    <loc>https://alexcrean.github.io/llms.txt</loc>
+  </url>
+  <url>
+    <loc>https://alexcrean.github.io/llms-full.txt</loc>
+  </url>
+  <url>
+    <loc>https://alexcrean.github.io/shared/</loc>
+  </url>
+  <url>
+    <loc>https://alexcrean.github.io/shared/colourconfiguration/</loc>
+  </url>
+  <url>
+    <loc>https://alexcrean.github.io/qol/</loc>
+  </url>
+  <url>
+    <loc>https://alexcrean.github.io/qol/documentinside/</loc>
+  </url>
+  <url>
+    <loc>https://alexcrean.github.io/qol/documentoutside/</loc>
+  </url>
+  <url>
+    <loc>https://alexcrean.github.io/qol/dontedit/</loc>
+  </url>
+</urlset>

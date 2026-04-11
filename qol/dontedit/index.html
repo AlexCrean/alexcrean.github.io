@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AC_Tools documentation viewer for Unity tools by Alex Crean.">
+    <base href="/">
+    <meta name="description" content="Don't Edit for Unity protects high-risk assets and objects with visible or hidden lock modes that reduce accidental edits, moves, openings, and destructive changes.">
     <meta name="robots" content="index,follow,max-image-preview:large">
     <meta name="theme-color" content="#141414">
-    <link rel="canonical" href="https://alexcrean.github.io/">
+    <link rel="canonical" href="https://alexcrean.github.io/qol/dontedit/">
     <link rel="alternate" type="text/markdown" title="llms.txt" href="https://alexcrean.github.io/llms.txt">
     <link rel="alternate" type="text/markdown" title="llms-full.txt" href="https://alexcrean.github.io/llms-full.txt">
-    <meta property="og:title" content="AC_Tools | Documentation">
-    <meta property="og:description" content="AC_Tools documentation viewer for Unity tools by Alex Crean.">
+    <meta property="og:title" content="Don't Edit | AC Tools">
+    <meta property="og:description" content="Don't Edit for Unity protects high-risk assets and objects with visible or hidden lock modes that reduce accidental edits, moves, openings, and destructive changes.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://alexcrean.github.io/">
+    <meta property="og:url" content="https://alexcrean.github.io/qol/dontedit/">
     <meta property="og:image" content="https://alexcrean.github.io/assets/branding/unity-tools-banner.png">
     <meta property="og:image:alt" content="AC Tools banner for Unity production workflow tools by Alex Crean.">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="AC_Tools | Documentation">
-    <meta name="twitter:description" content="AC_Tools documentation viewer for Unity tools by Alex Crean.">
+    <meta name="twitter:title" content="Don't Edit | AC Tools">
+    <meta name="twitter:description" content="Don't Edit for Unity protects high-risk assets and objects with visible or hidden lock modes that reduce accidental edits, moves, openings, and destructive changes.">
     <meta name="twitter:image" content="https://alexcrean.github.io/assets/branding/unity-tools-banner.png">
-    <title>AC_Tools | Documentation</title>
+    <title>Don't Edit | AC Tools</title>
     <link rel="icon" type="image/svg+xml" href="assets/branding/ac-monogram.svg?v=publish-5">
     <link rel="stylesheet" href="styles.css">
     <script type="application/ld+json" id="structuredData">
@@ -60,11 +61,6 @@
                 </a>
                 <label class="search-wrap" for="searchInput">
                     <span class="visually-hidden">Search documentation</span>
-                    <span class="search-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" focusable="false">
-                            <path d="M10.2 3a7.2 7.2 0 0 1 5.69 11.61l4.18 4.18a1.5 1.5 0 1 1-2.12 2.12l-4.18-4.18A7.2 7.2 0 1 1 10.2 3Zm0 3a4.2 4.2 0 1 0 0 8.4 4.2 4.2 0 0 0 0-8.4Z"/>
-                        </svg>
-                    </span>
                     <input id="searchInput" type="search" placeholder="Search the Docs">
                 </label>
             </div>
@@ -75,28 +71,6 @@
                 <div class="utility-group-header">
                     <span class="utility-group-title">Site Settings</span>
                 </div>
-                <button
-                    class="access-toggle achievement-toggle is-locked"
-                    id="achievementToggle"
-                    type="button"
-                    aria-expanded="false"
-                    aria-controls="achievementPanel"
-                    aria-disabled="true"
-                    disabled
-                >
-                    <span class="access-toggle-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" focusable="false">
-                            <path d="M7 3h10v2H7zM6 7h12v2.5A5.5 5.5 0 0 1 13.5 15v2H16v2H8v-2h2.5v-2A5.5 5.5 0 0 1 6 9.5Zm-2 0h2v2a2.5 2.5 0 0 1-2 2.45Zm16 0h2v4.45A2.5 2.5 0 0 1 20 9Z"></path>
-                        </svg>
-                    </span>
-                    <span class="access-toggle-text">Achievements (Locked)</span>
-                    <span class="access-toggle-chevron" aria-hidden="true"></span>
-                </button>
-
-                <section class="access-panel achievement-panel" id="achievementPanel" hidden aria-label="Achievements">
-                    <p class="access-declaration-copy">Unlock the secret replay easter egg to reveal achievements.</p>
-                </section>
-
                 <button
                     class="access-toggle"
                     id="accessToggle"

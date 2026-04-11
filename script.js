@@ -8,6 +8,8 @@ const accessToggle = document.getElementById("accessToggle");
 const accessPanel = document.getElementById("accessPanel");
 const aiToggle = document.getElementById("aiToggle");
 const aiPanel = document.getElementById("aiPanel");
+const achievementToggle = document.getElementById("achievementToggle");
+const achievementPanel = document.getElementById("achievementPanel");
 const accessForm = document.getElementById("accessForm");
 const accessCollapse = document.getElementById("accessCollapse");
 const accessReset = document.getElementById("accessReset");
@@ -24,6 +26,7 @@ const pageActions = document.getElementById("pageActions");
 const pagePitchMount = document.getElementById("pagePitchMount");
 const pageDocumentationMount = document.getElementById("pageDocumentationMount");
 const pageLeadSections = document.getElementById("pageLeadSections");
+const mainContent = document.getElementById("mainContent");
 const pageAssets = document.getElementById("pageAssets");
 const assetLocationCard = document.getElementById("assetLocationCard");
 const assetLocationPath = document.getElementById("assetLocationPath");
@@ -45,6 +48,7 @@ const referenceSearchIndex = [];
 const openGroups = new Set(viewer.groups.map((group) => group.slug));
 const isFileProtocol = window.location.protocol === "file:";
 const ACCESS_STORAGE_KEY = "ac_tools_accessibility";
+const ACHIEVEMENTS_STORAGE_KEY = "ac_tools_achievements";
 const defaultAccessibilityPrefs = {
     textSize: "default",
     contrast: "default",
@@ -66,8 +70,40 @@ let currentFragment = "";
 let searchQuery = "";
 const REF_SEARCH_TOKEN = "#ref";
 const CONFIG_DEFINITION_URL = "https://opensource.com/article/21/6/what-config-files";
+const DEFAULT_SITE_ORIGIN = "https://alexcrean.github.io";
+const DEFAULT_OG_IMAGE_PATH = "/assets/branding/unity-tools-banner.png";
+const SEO_DEFAULT_DESCRIPTION = "Unity Editor workflow tools by Alex Crean for documentation, review flow, safe editing, and production clarity.";
+const SITE_ORIGIN = !isFileProtocol ? window.location.origin : DEFAULT_SITE_ORIGIN;
+const HEADER_CONDENSED_CLASS = "is-header-condensed";
+const HOME_HEADER_SCROLL_THRESHOLD = 28;
+const HOME_HEADER_SCROLL_RELEASE_THRESHOLD = 1;
+const HOME_HEADER_CONDENSE_GUARD_MS = 320;
+const HOME_TITLE_DECIPHER_DURATION_MS = 2000;
+const HOME_TITLE_REPLAY_COOLDOWN_MS = 320;
+const HOME_TITLE_DECIPHER_GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*?";
+const HOME_TITLE_REPLAY_BUTTON_ID = "homeTitleReplayButton";
+const HOME_DECIPHER_COMPLETE_CLASS = "is-home-decipher-complete";
+const HOME_REPLAY_EASTER_EGG_ODDS_DENOMINATOR = 10;
+const HOME_REPLAY_EASTER_EGG_DURATION_MS = 1300;
+const HOME_REPLAY_EASTER_EGG_LINE = "Certified Button Clicker Unlocked";
+const HOME_REPLAY_ULTRA_RARE_ODDS_DENOMINATOR = 25;
+const HOME_REPLAY_ULTRA_RARE_DURATION_MS = 2200;
+const HOME_REPLAY_ULTRA_RARE_LINE = "Ultra Rare Unlocked: Binary Rain Mode";
 
 let accessibilityPrefs = { ...defaultAccessibilityPrefs };
+let headerScrollTicking = false;
+let homeHeaderCondensedAt = 0;
+let homeTitleAutoRunComplete = false;
+let homeTitleDecipherRafId = 0;
+let homeTitleDecipherRunId = 0;
+let isHomeTitleDeciphering = false;
+let homeTitleReplayLastTriggeredAt = -Infinity;
+let homeTitleReplayCooldownTimer = 0;
+let homeReplayEasterEggTimer = 0;
+let homeReplayBinaryRainTimer = 0;
+let achievementsState = {
+    replayClickerUnlocked: false
+};
 
 const escapeHtml = (value = "") =>
     String(value)
@@ -451,6 +487,57 @@ const saveAccessibilityPrefs = () => {
     } catch {}
 };
 
+const loadAchievementsState = () => {
+    try {
+        const raw = window.localStorage.getItem(ACHIEVEMENTS_STORAGE_KEY);
+        if (!raw) {
+            return { replayClickerUnlocked: false };
+        }
+
+        const parsed = JSON.parse(raw);
+        return {
+            replayClickerUnlocked: Boolean(parsed?.replayClickerUnlocked)
+        };
+    } catch {
+        return { replayClickerUnlocked: false };
+    }
+};
+
+const saveAchievementsState = () => {
+    try {
+        window.localStorage.setItem(ACHIEVEMENTS_STORAGE_KEY, JSON.stringify(achievementsState));
+    } catch {}
+};
+
+const syncAchievementsUi = () => {
+    if (!(achievementToggle instanceof HTMLButtonElement)) {
+        return;
+    }
+
+    const unlocked = Boolean(achievementsState.replayClickerUnlocked);
+    const label = achievementToggle.querySelector(".access-toggle-text");
+    if (label) {
+        label.textContent = unlocked ? "Achievements" : "Achievements (Locked)";
+    }
+
+    achievementToggle.disabled = !unlocked;
+    achievementToggle.setAttribute("aria-disabled", String(!unlocked));
+    achievementToggle.classList.toggle("is-locked", !unlocked);
+
+    if (!unlocked) {
+        achievementToggle.setAttribute("aria-expanded", "false");
+        if (achievementPanel) {
+            achievementPanel.hidden = true;
+        }
+    }
+
+    if (achievementPanel) {
+        achievementPanel.innerHTML = unlocked
+            ? '<p class="access-declaration-copy"><strong>Certified Button Clicker Unlocked</strong><br>Score: 10%</p>'
+            : '<p class="access-declaration-copy">Unlock the secret replay easter egg to reveal achievements.</p>';
+    }
+};
+
 const toggleBodyDataset = (name, value, defaultValue = "", target = document.body) => {
     if (!target) {
         return;
@@ -498,6 +585,13 @@ const syncAccessibilityForm = () => {
     focusBoost.checked = accessibilityPrefs.focusBoost;
 };
 
+const syncSidebarMenuVisibility = () => {
+    const accessOpen = Boolean(accessPanel && !accessPanel.hidden);
+    const aiOpen = Boolean(aiPanel && !aiPanel.hidden);
+    const achievementsOpen = Boolean(achievementPanel && !achievementPanel.hidden);
+    document.body.classList.toggle("is-sidebar-panel-open", accessOpen || aiOpen || achievementsOpen);
+};
+
 const openAccessPanel = () => {
     if (!accessPanel || !accessToggle) {
         return;
@@ -505,6 +599,7 @@ const openAccessPanel = () => {
 
     accessPanel.hidden = false;
     accessToggle.setAttribute("aria-expanded", "true");
+    syncSidebarMenuVisibility();
 };
 
 const closeAccessPanel = () => {
@@ -514,6 +609,7 @@ const closeAccessPanel = () => {
 
     accessPanel.hidden = true;
     accessToggle.setAttribute("aria-expanded", "false");
+    syncSidebarMenuVisibility();
 };
 
 const toggleAccessPanel = () => {
@@ -536,6 +632,7 @@ const openAiPanel = () => {
 
     aiPanel.hidden = false;
     aiToggle.setAttribute("aria-expanded", "true");
+    syncSidebarMenuVisibility();
 };
 
 const closeAiPanel = () => {
@@ -545,6 +642,27 @@ const closeAiPanel = () => {
 
     aiPanel.hidden = true;
     aiToggle.setAttribute("aria-expanded", "false");
+    syncSidebarMenuVisibility();
+};
+
+const openAchievementPanel = () => {
+    if (!achievementPanel || !achievementToggle || !achievementsState.replayClickerUnlocked) {
+        return;
+    }
+
+    achievementPanel.hidden = false;
+    achievementToggle.setAttribute("aria-expanded", "true");
+    syncSidebarMenuVisibility();
+};
+
+const closeAchievementPanel = () => {
+    if (!achievementPanel || !achievementToggle) {
+        return;
+    }
+
+    achievementPanel.hidden = true;
+    achievementToggle.setAttribute("aria-expanded", "false");
+    syncSidebarMenuVisibility();
 };
 
 const attachHoldReset = (button, onComplete, durationMs = 500) => {
@@ -634,6 +752,19 @@ const toggleAiPanel = () => {
     closeAiPanel();
 };
 
+const toggleAchievementPanel = () => {
+    if (!achievementPanel || !achievementsState.replayClickerUnlocked) {
+        return;
+    }
+
+    if (achievementPanel.hidden) {
+        openAchievementPanel();
+        return;
+    }
+
+    closeAchievementPanel();
+};
+
 const getPathSegments = (pathname = window.location.pathname) =>
     pathname
         .split("/")
@@ -692,6 +823,583 @@ const createActionLink = ({ href, label }) => {
 
     link.textContent = label;
     return link;
+};
+
+const setHomeDecipherCompleteState = (complete) => {
+    document.body.classList.toggle(HOME_DECIPHER_COMPLETE_CLASS, Boolean(complete));
+};
+
+const removeReplayEasterEggToast = () => {
+    const existingToast = document.getElementById("homeReplayEasterEggToast");
+    if (existingToast) {
+        existingToast.remove();
+    }
+};
+
+const removeReplayBinaryRain = () => {
+    const rain = document.getElementById("homeReplayBinaryRain");
+    if (rain) {
+        rain.remove();
+    }
+};
+
+const spawnReplayBinaryRain = () => {
+    removeReplayBinaryRain();
+    const container = document.createElement("div");
+    container.id = "homeReplayBinaryRain";
+    container.className = "home-replay-binary-rain";
+
+    for (let index = 0; index < 64; index += 1) {
+        const bit = document.createElement("span");
+        bit.className = "home-replay-binary-bit";
+        bit.textContent = Math.random() < 0.5 ? "0" : "1";
+        bit.style.left = `${Math.random() * 100}%`;
+        bit.style.animationDelay = `${Math.random() * 0.35}s`;
+        bit.style.animationDuration = `${1.6 + Math.random() * 1.4}s`;
+        container.appendChild(bit);
+    }
+
+    document.body.appendChild(container);
+};
+
+const spawnReplayEasterEggToast = (line, { ultraRare = false } = {}) => {
+    removeReplayEasterEggToast();
+    const toast = document.createElement("div");
+    toast.id = "homeReplayEasterEggToast";
+    toast.className = `home-replay-easter-egg-toast${ultraRare ? " is-ultra-rare" : ""}`;
+    toast.textContent = line;
+    document.body.appendChild(toast);
+};
+
+const maybeTriggerReplayEasterEgg = (targetText) => {
+    if (!pageTitle || !targetText) {
+        return;
+    }
+
+    const roll = Math.random();
+    const ultraRareChance = 1 / HOME_REPLAY_ULTRA_RARE_ODDS_DENOMINATOR;
+    const normalChance = 1 / HOME_REPLAY_EASTER_EGG_ODDS_DENOMINATOR;
+    const ultraRareWon = roll < ultraRareChance;
+    const normalWon = !ultraRareWon && roll < ultraRareChance + normalChance;
+    if (!ultraRareWon && !normalWon) {
+        return;
+    }
+
+    if (homeReplayEasterEggTimer) {
+        window.clearTimeout(homeReplayEasterEggTimer);
+        homeReplayEasterEggTimer = 0;
+    }
+
+    if (homeReplayBinaryRainTimer) {
+        window.clearTimeout(homeReplayBinaryRainTimer);
+        homeReplayBinaryRainTimer = 0;
+    }
+
+    const rewardLine = ultraRareWon ? HOME_REPLAY_ULTRA_RARE_LINE : HOME_REPLAY_EASTER_EGG_LINE;
+    const rewardDuration = ultraRareWon ? HOME_REPLAY_ULTRA_RARE_DURATION_MS : HOME_REPLAY_EASTER_EGG_DURATION_MS;
+
+    spawnReplayEasterEggToast(rewardLine, { ultraRare: ultraRareWon });
+    if (ultraRareWon) {
+        spawnReplayBinaryRain();
+    }
+    pageTitle.classList.add("is-easter-egg");
+    pageTitle.textContent = rewardLine;
+
+    if (!achievementsState.replayClickerUnlocked) {
+        achievementsState.replayClickerUnlocked = true;
+        saveAchievementsState();
+        syncAchievementsUi();
+        openAchievementPanel();
+    }
+
+    homeReplayEasterEggTimer = window.setTimeout(() => {
+        pageTitle.classList.remove("is-easter-egg");
+        if (!isHomeTitleDeciphering) {
+            pageTitle.textContent = targetText;
+        }
+        removeReplayEasterEggToast();
+        homeReplayEasterEggTimer = 0;
+    }, rewardDuration);
+
+    if (ultraRareWon) {
+        homeReplayBinaryRainTimer = window.setTimeout(() => {
+            removeReplayBinaryRain();
+            homeReplayBinaryRainTimer = 0;
+        }, rewardDuration + 250);
+    }
+};
+
+const isDecipherTargetCharacter = (character) => /[A-Za-z0-9]/.test(character);
+
+const getRandomDecipherGlyph = () =>
+    HOME_TITLE_DECIPHER_GLYPHS[Math.floor(Math.random() * HOME_TITLE_DECIPHER_GLYPHS.length)];
+
+const buildDecipherRevealOrder = (value) => {
+    const revealOrder = [];
+
+    Array.from(value).forEach((character, index) => {
+        if (isDecipherTargetCharacter(character)) {
+            revealOrder.push(index);
+        }
+    });
+
+    for (let index = revealOrder.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [revealOrder[index], revealOrder[swapIndex]] = [revealOrder[swapIndex], revealOrder[index]];
+    }
+
+    return revealOrder;
+};
+
+const buildDecipherFrameText = (targetText, revealOrder, revealCount) => {
+    const revealed = new Set(revealOrder.slice(0, revealCount));
+
+    return Array.from(targetText)
+        .map((character, index) => {
+            if (!isDecipherTargetCharacter(character)) {
+                return character;
+            }
+
+            return revealed.has(index) ? character : getRandomDecipherGlyph();
+        })
+        .join("");
+};
+
+const updateHomeTitleReplayButtonState = () => {
+    const replayButton = document.getElementById(HOME_TITLE_REPLAY_BUTTON_ID);
+    if (!(replayButton instanceof HTMLButtonElement)) {
+        return;
+    }
+
+    if (!homeTitleAutoRunComplete) {
+        replayButton.disabled = true;
+        replayButton.textContent = "Deciphering...";
+        return;
+    }
+
+    const inReplayCooldown = performance.now() - homeTitleReplayLastTriggeredAt < HOME_TITLE_REPLAY_COOLDOWN_MS;
+    replayButton.disabled = inReplayCooldown;
+    replayButton.textContent = inReplayCooldown ? "Replay (cooldown)" : "Replay Decipher";
+};
+
+const startHomeTitleReplayCooldown = () => {
+    homeTitleReplayLastTriggeredAt = performance.now();
+    updateHomeTitleReplayButtonState();
+
+    if (homeTitleReplayCooldownTimer) {
+        window.clearTimeout(homeTitleReplayCooldownTimer);
+    }
+
+    homeTitleReplayCooldownTimer = window.setTimeout(() => {
+        homeTitleReplayCooldownTimer = 0;
+        updateHomeTitleReplayButtonState();
+    }, HOME_TITLE_REPLAY_COOLDOWN_MS + 16);
+};
+
+const endHomeTitleDecipher = () => {
+    isHomeTitleDeciphering = false;
+    homeTitleDecipherRafId = 0;
+
+    if (pageTitle) {
+        pageTitle.classList.remove("is-deciphering");
+    }
+
+    updateHomeTitleReplayButtonState();
+};
+
+const cancelHomeTitleDecipher = () => {
+    homeTitleDecipherRunId += 1;
+
+    if (homeTitleDecipherRafId) {
+        window.cancelAnimationFrame(homeTitleDecipherRafId);
+        homeTitleDecipherRafId = 0;
+    }
+
+    endHomeTitleDecipher();
+};
+
+const playHomeTitleDecipher = (targetText, { replay = false } = {}) => {
+    if (!pageTitle || !targetText) {
+        return;
+    }
+
+    if (replay) {
+        if (!homeTitleAutoRunComplete) {
+            return;
+        }
+        if (performance.now() - homeTitleReplayLastTriggeredAt < HOME_TITLE_REPLAY_COOLDOWN_MS) {
+            return;
+        }
+        startHomeTitleReplayCooldown();
+    } else {
+        if (homeTitleAutoRunComplete) {
+            return;
+        }
+        setHomeDecipherCompleteState(false);
+    }
+
+    if (isHomeTitleDeciphering) {
+        cancelHomeTitleDecipher();
+    }
+
+    if (accessibilityPrefs.reduceMotion) {
+        pageTitle.textContent = targetText;
+        if (!replay) {
+            homeTitleAutoRunComplete = true;
+            setHomeDecipherCompleteState(true);
+        }
+        endHomeTitleDecipher();
+        return;
+    }
+
+    const revealOrder = buildDecipherRevealOrder(targetText);
+    const revealTotal = revealOrder.length;
+    const startTime = performance.now();
+    const runId = homeTitleDecipherRunId + 1;
+
+    homeTitleDecipherRunId = runId;
+    isHomeTitleDeciphering = true;
+    pageTitle.classList.add("is-deciphering");
+    pageTitle.textContent = buildDecipherFrameText(targetText, revealOrder, 0);
+    updateHomeTitleReplayButtonState();
+
+    const tick = (now) => {
+        if (runId !== homeTitleDecipherRunId) {
+            return;
+        }
+
+        const progress = Math.min((now - startTime) / HOME_TITLE_DECIPHER_DURATION_MS, 1);
+        const revealCount = Math.floor(revealTotal * progress);
+        pageTitle.textContent = buildDecipherFrameText(targetText, revealOrder, revealCount);
+
+        if (progress >= 1) {
+            pageTitle.textContent = targetText;
+            if (!replay) {
+                homeTitleAutoRunComplete = true;
+                setHomeDecipherCompleteState(true);
+            }
+            endHomeTitleDecipher();
+            return;
+        }
+
+        homeTitleDecipherRafId = window.requestAnimationFrame(tick);
+    };
+
+    homeTitleDecipherRafId = window.requestAnimationFrame(tick);
+};
+
+const createHomeTitleReplayButton = (targetText) => {
+    const replayButton = document.createElement("button");
+    replayButton.type = "button";
+    replayButton.id = HOME_TITLE_REPLAY_BUTTON_ID;
+    replayButton.className = "page-action-link page-action-replay";
+    replayButton.addEventListener("click", () => {
+        maybeTriggerReplayEasterEgg(targetText);
+        playHomeTitleDecipher(targetText, { replay: true });
+    });
+    updateHomeTitleReplayButtonState();
+    return replayButton;
+};
+
+const getAbsoluteUrl = (route = "/") => new URL(buildUrl(route), `${SITE_ORIGIN}${basePath || "/"}`).toString();
+
+const getAbsoluteAssetUrl = (assetPath = DEFAULT_OG_IMAGE_PATH) => new URL(buildAssetUrl(assetPath), `${SITE_ORIGIN}${basePath || "/"}`).toString();
+
+const truncateDescription = (value, maxLength = 170) => {
+    const normalized = String(value || "").replace(/\s+/g, " ").trim();
+
+    if (normalized.length <= maxLength) {
+        return normalized;
+    }
+
+    const shortened = normalized.slice(0, maxLength - 1);
+    const safeBreak = shortened.lastIndexOf(" ");
+    return `${(safeBreak > 100 ? shortened.slice(0, safeBreak) : shortened).trim()}.`;
+};
+
+const getSeoTitle = (entry) => {
+    if (!entry || entry.type === "home") {
+        return "AC Tools | Unity Tools by Alex Crean";
+    }
+
+    if (entry.type === "group") {
+        return `${entry.title} | AC Tools`;
+    }
+
+    return `${entry.title} | ${entry.groupTitle || "AC Tools"} | Unity Tools by Alex Crean`;
+};
+
+const getSeoDescription = (entry) => {
+    if (!entry) {
+        return SEO_DEFAULT_DESCRIPTION;
+    }
+
+    const summary = String(entry.summary || "").trim();
+
+    if (!summary) {
+        return SEO_DEFAULT_DESCRIPTION;
+    }
+
+    if (entry.type === "home") {
+        return truncateDescription(`${summary} ${SEO_DEFAULT_DESCRIPTION}`);
+    }
+
+    return truncateDescription(`${summary} Unity Editor documentation by Alex Crean.`);
+};
+
+const getBreadcrumbItems = (entry) => {
+    const items = [
+        {
+            name: viewer.home.title || "Home",
+            route: viewer.home.route || "/"
+        }
+    ];
+
+    if (!entry || entry.type === "home") {
+        return items;
+    }
+
+    if (entry.groupSlug) {
+        items.push({
+            name: entry.groupTitle || groupMap.get(entry.groupSlug)?.title || "Documentation",
+            route: `/${entry.groupSlug}`
+        });
+    }
+
+    if (entry.type === "page") {
+        items.push({
+            name: entry.title || "Page",
+            route: entry.route
+        });
+    }
+
+    return items;
+};
+
+const buildSeoSchema = (entry) => {
+    const title = getSeoTitle(entry);
+    const description = getSeoDescription(entry);
+    const url = getAbsoluteUrl(entry?.route || "/");
+    const image = getAbsoluteAssetUrl(DEFAULT_OG_IMAGE_PATH);
+    const siteUrl = getAbsoluteUrl("/");
+    const baseWebSite = {
+        "@type": "WebSite",
+        "@id": `${siteUrl}#website`,
+        name: "AC Tools",
+        url: siteUrl,
+        description: SEO_DEFAULT_DESCRIPTION
+    };
+
+    if (!entry || entry.type === "home") {
+        return {
+            "@context": "https://schema.org",
+            "@graph": [
+                baseWebSite,
+                {
+                    "@type": "CollectionPage",
+                    "@id": `${url}#webpage`,
+                    url,
+                    name: title,
+                    description,
+                    isPartOf: {
+                        "@id": `${siteUrl}#website`
+                    },
+                    about: [
+                        "Unity Editor tools",
+                        "Unity documentation workflow",
+                        "Unity review workflow",
+                        "Unity asset protection"
+                    ],
+                    primaryImageOfPage: {
+                        "@type": "ImageObject",
+                        url: image
+                    }
+                }
+            ]
+        };
+    }
+
+    const breadcrumbItems = getBreadcrumbItems(entry).map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        item: getAbsoluteUrl(item.route)
+    }));
+    const graph = [
+        baseWebSite,
+        {
+            "@type": entry.type === "group" ? "CollectionPage" : "WebPage",
+            "@id": `${url}#webpage`,
+            url,
+            name: title,
+            description,
+            isPartOf: {
+                "@id": `${siteUrl}#website`
+            },
+            breadcrumb: {
+                "@id": `${url}#breadcrumb`
+            },
+            primaryImageOfPage: {
+                "@type": "ImageObject",
+                url: image
+            }
+        },
+        {
+            "@type": "BreadcrumbList",
+            "@id": `${url}#breadcrumb`,
+            itemListElement: breadcrumbItems
+        }
+    ];
+
+    if (entry.type === "page") {
+        graph.push({
+            "@type": "SoftwareApplication",
+            name: entry.title || "AC Tool",
+            applicationCategory: "DeveloperApplication",
+            operatingSystem: "Unity Editor",
+            description,
+            url,
+            image
+        });
+    }
+
+    return {
+        "@context": "https://schema.org",
+        "@graph": graph
+    };
+};
+
+const upsertHeadTag = (selector, tagName, attributes, textContent = "") => {
+    let node = document.head.querySelector(selector);
+
+    if (!node) {
+        node = document.createElement(tagName);
+        document.head.appendChild(node);
+    }
+
+    Object.entries(attributes).forEach(([key, value]) => {
+        node.setAttribute(key, value);
+    });
+
+    if (tagName === "script") {
+        node.textContent = textContent;
+    }
+
+    return node;
+};
+
+const updateSeo = (entry) => {
+    const title = getSeoTitle(entry);
+    const description = getSeoDescription(entry);
+    const canonicalUrl = getAbsoluteUrl(entry?.route || "/");
+    const imageUrl = getAbsoluteAssetUrl(DEFAULT_OG_IMAGE_PATH);
+    const ogType = entry?.type === "home" ? "website" : "article";
+
+    document.title = title;
+
+    upsertHeadTag('meta[name="description"]', "meta", { name: "description", content: description });
+    upsertHeadTag('meta[name="robots"]', "meta", { name: "robots", content: "index,follow,max-image-preview:large" });
+    upsertHeadTag('link[rel="canonical"]', "link", { rel: "canonical", href: canonicalUrl });
+    upsertHeadTag('meta[property="og:title"]', "meta", { property: "og:title", content: title });
+    upsertHeadTag('meta[property="og:description"]', "meta", { property: "og:description", content: description });
+    upsertHeadTag('meta[property="og:type"]', "meta", { property: "og:type", content: ogType });
+    upsertHeadTag('meta[property="og:url"]', "meta", { property: "og:url", content: canonicalUrl });
+    upsertHeadTag('meta[property="og:image"]', "meta", { property: "og:image", content: imageUrl });
+    upsertHeadTag('meta[property="og:image:alt"]', "meta", { property: "og:image:alt", content: "AC Tools banner for Unity production workflow tools by Alex Crean." });
+    upsertHeadTag('meta[name="twitter:card"]', "meta", { name: "twitter:card", content: "summary_large_image" });
+    upsertHeadTag('meta[name="twitter:title"]', "meta", { name: "twitter:title", content: title });
+    upsertHeadTag('meta[name="twitter:description"]', "meta", { name: "twitter:description", content: description });
+    upsertHeadTag('meta[name="twitter:image"]', "meta", { name: "twitter:image", content: imageUrl });
+    upsertHeadTag("#structuredData", "script", { id: "structuredData", type: "application/ld+json" }, JSON.stringify(buildSeoSchema(entry)));
+};
+
+const createInternalLink = ({ className = "", text = "", route = "/", fragment = "", onNavigate = null }) => {
+    const link = document.createElement("a");
+    link.className = className;
+    link.href = buildUrl(route, fragment);
+    link.textContent = text;
+    link.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (typeof onNavigate === "function") {
+            onNavigate();
+            return;
+        }
+
+        navigateTo(route, false, fragment);
+    });
+    return link;
+};
+
+const setHeaderCondensedState = (isCondensed) => {
+    const nextState = Boolean(isCondensed);
+    const currentState = document.body.classList.contains(HEADER_CONDENSED_CLASS);
+    if (currentState === nextState) {
+        return;
+    }
+
+    document.body.classList.toggle(HEADER_CONDENSED_CLASS, nextState);
+    if (nextState) {
+        homeHeaderCondensedAt = performance.now();
+    }
+};
+
+const syncHomeHeaderState = () => {
+    const isHomePage = document.body.classList.contains("is-home-page");
+    if (!isHomePage) {
+        setHeaderCondensedState(false);
+        return;
+    }
+
+    const isCondensed = document.body.classList.contains(HEADER_CONDENSED_CLASS);
+    const scrollY = window.scrollY;
+
+    if (!isCondensed) {
+        setHeaderCondensedState(scrollY > HOME_HEADER_SCROLL_THRESHOLD);
+        return;
+    }
+
+    const condensedForMs = performance.now() - homeHeaderCondensedAt;
+    const shouldRelease = condensedForMs >= HOME_HEADER_CONDENSE_GUARD_MS && scrollY <= HOME_HEADER_SCROLL_RELEASE_THRESHOLD;
+    if (shouldRelease) {
+        setHeaderCondensedState(false);
+    }
+};
+
+const handleHomeHeaderScroll = () => {
+    if (headerScrollTicking) {
+        return;
+    }
+
+    headerScrollTicking = true;
+    window.requestAnimationFrame(() => {
+        syncHomeHeaderState();
+        headerScrollTicking = false;
+    });
+};
+
+const syncScrollPosition = () => {
+    window.requestAnimationFrame(() => {
+        if (currentFragment) {
+            const target = document.getElementById(currentFragment);
+            if (target) {
+                target.scrollIntoView({
+                    block: "start",
+                    behavior: accessibilityPrefs.reduceMotion ? "auto" : "smooth"
+                });
+                return;
+            }
+        }
+
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: "auto"
+        });
+
+        if (mainContent instanceof HTMLElement) {
+            mainContent.scrollTop = 0;
+        }
+    });
 };
 
 const registerRoute = (entry) => {
@@ -1192,6 +1900,30 @@ const appendSectionContent = (body, section) => {
             li.textContent = item;
             list.appendChild(li);
         });
+        body.appendChild(list);
+    }
+
+    if (section.faqList?.length) {
+        const list = document.createElement("div");
+        list.className = "section-faq-list";
+
+        section.faqList.forEach((item) => {
+            const faqItem = document.createElement("article");
+            faqItem.className = "section-faq-item";
+
+            const question = document.createElement("p");
+            question.className = "section-faq-question";
+            question.textContent = item.question;
+
+            const answer = document.createElement("p");
+            answer.className = "section-faq-answer";
+            answer.innerHTML = withDefinitionLinks(item.answer || "");
+
+            faqItem.appendChild(question);
+            faqItem.appendChild(answer);
+            list.appendChild(faqItem);
+        });
+
         body.appendChild(list);
     }
 
@@ -1802,8 +2534,22 @@ const renderPage = () => {
     const aboutSection = aboutSectionIndex >= 0 ? sections.splice(aboutSectionIndex, 1)[0] : null;
     const pitchSection = overviewSection || aboutSection;
     const pitchMediaItems = (Array.isArray(entry.media) ? entry.media : []).filter((item) => item.pitchMedia);
+    const docsFragment =
+        leadSections.length
+            ? "documentation"
+            : entry.sectionGroups?.length
+                ? getSectionGroupId(entry.sectionGroups[0])
+                : sections.length
+                    ? getSectionId(sections[0])
+                    : "";
 
     document.body.classList.toggle("is-home-page", isHomePage);
+    updateSeo(entry);
+    setHomeDecipherCompleteState(isHomePage && homeTitleAutoRunComplete);
+
+    if (!isHomePage) {
+        cancelHomeTitleDecipher();
+    }
 
     pageGroup.textContent = "";
     pageGroup.hidden = true;
@@ -1823,12 +2569,12 @@ const renderPage = () => {
             pagePitch.appendChild(storeLink);
             pagePitch.append(". Already using it? ");
             const docsLink = document.createElement("a");
-            docsLink.href = buildUrl(currentRoute, "documentation");
+            docsLink.href = docsFragment ? buildUrl(currentRoute, docsFragment) : buildUrl(currentRoute);
             docsLink.className = "page-pitch-link page-pitch-pill";
             docsLink.textContent = "The docs start below.";
             docsLink.addEventListener("click", (event) => {
                 event.preventDefault();
-                navigateTo(currentRoute, false, "documentation");
+                navigateTo(currentRoute, false, docsFragment);
             });
             pagePitch.appendChild(docsLink);
         }
@@ -1836,6 +2582,10 @@ const renderPage = () => {
     }
     pageMeta.textContent = "";
     pageMeta.hidden = true;
+
+    if (isHomePage && entry.title) {
+        playHomeTitleDecipher(entry.title);
+    }
 
     if (pageOverview) {
         pageOverview.innerHTML = "";
@@ -1904,11 +2654,23 @@ const renderPage = () => {
             actions.push(...entry.actions);
         }
 
-        actions.forEach((action) => {
-            pageActions.appendChild(createActionLink(action));
+        actions.forEach((action, index) => {
+            const actionLink = createActionLink(action);
+            if (isHomePage) {
+                if (index === 0) {
+                    actionLink.classList.add("page-action-primary");
+                } else if (index === 1) {
+                    actionLink.classList.add("page-action-secondary");
+                }
+            }
+            pageActions.appendChild(actionLink);
         });
 
-        pageActions.hidden = actions.length === 0;
+        if (isHomePage && entry.title) {
+            pageActions.appendChild(createHomeTitleReplayButton(entry.title));
+        }
+
+        pageActions.hidden = actions.length === 0 && !(isHomePage && entry.title);
     }
 
     const versionParts = [];
@@ -2020,9 +2782,11 @@ const renderNav = () => {
         resultList.className = "ref-results";
 
         results.forEach((result) => {
-            const resultButton = document.createElement("button");
-            resultButton.type = "button";
-            resultButton.className = `ref-link${currentRoute === result.pageRoute && currentFragment === result.fragment ? " is-active" : ""}`;
+            const resultButton = createInternalLink({
+                className: `ref-link${currentRoute === result.pageRoute && currentFragment === result.fragment ? " is-active" : ""}`,
+                route: result.pageRoute,
+                fragment: result.fragment
+            });
 
             const title = document.createElement("span");
             title.className = "ref-link-title";
@@ -2034,9 +2798,6 @@ const renderNav = () => {
 
             resultButton.appendChild(title);
             resultButton.appendChild(meta);
-            resultButton.addEventListener("click", () => {
-                navigateTo(result.pageRoute, false, result.fragment);
-            });
 
             resultList.appendChild(resultButton);
         });
@@ -2067,9 +2828,11 @@ const renderNav = () => {
 
         results.forEach((result) => {
             const isActive = currentRoute === result.pageRoute && currentFragment === normalizeFragment(result.fragment || "");
-            const resultButton = document.createElement("button");
-            resultButton.type = "button";
-            resultButton.className = `ref-link${isActive ? " is-active" : ""}`;
+            const resultButton = createInternalLink({
+                className: `ref-link${isActive ? " is-active" : ""}`,
+                route: result.pageRoute,
+                fragment: result.fragment
+            });
 
             const title = document.createElement("span");
             title.className = "ref-link-title";
@@ -2088,10 +2851,6 @@ const renderNav = () => {
                 snippet.textContent = result.snippet;
                 resultButton.appendChild(snippet);
             }
-
-            resultButton.addEventListener("click", () => {
-                navigateTo(result.pageRoute, false, result.fragment);
-            });
 
             resultList.appendChild(resultButton);
         });
@@ -2149,11 +2908,14 @@ const renderNav = () => {
             navigateTo(defaultRoute);
         };
 
-        const groupLink = document.createElement("button");
-        groupLink.type = "button";
-        groupLink.className = `group-link${containsCurrentRoute ? " is-active" : ""}`;
-        groupLink.textContent = group.title;
-        groupLink.addEventListener("click", navigateGroup);
+        const defaultPage = visiblePages[0];
+        const defaultRoute = defaultPage ? `/${group.slug}/${defaultPage.slug}` : groupEntry.route;
+        const groupLink = createInternalLink({
+            className: `group-link${containsCurrentRoute ? " is-active" : ""}`,
+            text: group.title,
+            route: defaultRoute,
+            onNavigate: navigateGroup
+        });
 
         const groupToggle = document.createElement("button");
         groupToggle.type = "button";
@@ -2175,12 +2937,10 @@ const renderNav = () => {
         // Render the visible pages for the current group.
         visiblePages.forEach((page) => {
             const pageEntry = resolveEntry(`/${group.slug}/${page.slug}`);
-            const pageLink = document.createElement("button");
-            pageLink.type = "button";
-            pageLink.className = `page-link${currentRoute === pageEntry.route ? " is-active" : ""}`;
-            pageLink.textContent = page.title;
-            pageLink.addEventListener("click", () => {
-                navigateTo(pageEntry.route);
+            const pageLink = createInternalLink({
+                className: `page-link${currentRoute === pageEntry.route ? " is-active" : ""}`,
+                text: page.title,
+                route: pageEntry.route
             });
             pageList.appendChild(pageLink);
         });
@@ -2198,18 +2958,8 @@ const render = () => {
 
     renderNav();
     renderPage();
-
-    if (currentFragment) {
-        window.requestAnimationFrame(() => {
-            const target = document.getElementById(currentFragment);
-            if (target) {
-                target.scrollIntoView({
-                    block: "start",
-                    behavior: accessibilityPrefs.reduceMotion ? "auto" : "smooth"
-                });
-            }
-        });
-    }
+    syncHomeHeaderState();
+    syncScrollPosition();
 };
 
 if (menuToggle) {
@@ -2239,6 +2989,12 @@ if (accessToggle) {
 if (aiToggle) {
     aiToggle.addEventListener("click", () => {
         toggleAiPanel();
+    });
+}
+
+if (achievementToggle) {
+    achievementToggle.addEventListener("click", () => {
+        toggleAchievementPanel();
     });
 }
 
@@ -2305,10 +3061,13 @@ window.addEventListener("popstate", () => {
     closeSidebar();
 });
 
+window.addEventListener("scroll", handleHomeHeaderScroll, { passive: true });
+
 window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
         closeAccessPanel();
         closeAiPanel();
+        closeAchievementPanel();
         closeSidebar();
     }
 });
@@ -2372,11 +3131,31 @@ document.addEventListener("click", (event) => {
     closeAiPanel();
 });
 
+document.addEventListener("click", (event) => {
+    if (!achievementPanel || !achievementToggle || achievementPanel.hidden) {
+        return;
+    }
+
+    const target = event.target;
+    if (!(target instanceof Node)) {
+        return;
+    }
+
+    if (achievementPanel.contains(target) || achievementToggle.contains(target)) {
+        return;
+    }
+
+    closeAchievementPanel();
+});
+
 currentRoute = resolveEntry(getRequestedRoute()).route;
 currentFragment = getRequestedFragment();
 accessibilityPrefs = loadAccessibilityPrefs();
+achievementsState = loadAchievementsState();
 applyAccessibilityPrefs();
 syncAccessibilityForm();
+syncAchievementsUi();
+syncSidebarMenuVisibility();
 
 if (new URLSearchParams(window.location.search).has("route")) {
     navigateTo(currentRoute, true, currentFragment);
