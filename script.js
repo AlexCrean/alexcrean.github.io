@@ -14,16 +14,20 @@ const accessReset = document.getElementById("accessReset");
 const personalLink = document.getElementById("personalLink");
 const linkedinLink = document.getElementById("linkedinLink");
 const publisherLink = document.getElementById("publisherLink");
-const contactLink = document.getElementById("contactLink");
 const pageGroup = document.getElementById("pageGroup");
 const pageTitle = document.getElementById("pageTitle");
 const pageSummary = document.getElementById("pageSummary");
 const pageOverview = document.getElementById("pageOverview");
+const pagePitch = document.getElementById("pagePitch");
 const pageMeta = document.getElementById("pageMeta");
 const pageActions = document.getElementById("pageActions");
+const pagePitchMount = document.getElementById("pagePitchMount");
+const pageDocumentationMount = document.getElementById("pageDocumentationMount");
+const pageLeadSections = document.getElementById("pageLeadSections");
 const pageAssets = document.getElementById("pageAssets");
 const assetLocationCard = document.getElementById("assetLocationCard");
 const assetLocationPath = document.getElementById("assetLocationPath");
+const assetLocationCopy = document.getElementById("assetLocationCopy");
 const mediaGallery = document.getElementById("mediaGallery");
 const sectionList = document.getElementById("sectionList");
 const pageAddonAssets = document.getElementById("pageAddonAssets");
@@ -35,6 +39,7 @@ const routeMap = new Map();
 const aliasMap = new Map();
 const groupMap = new Map();
 const pageSearchIndex = new Map();
+const pageSearchMeta = new Map();
 const groupSearchIndex = new Map();
 const referenceSearchIndex = [];
 const openGroups = new Set(viewer.groups.map((group) => group.slug));
@@ -77,6 +82,74 @@ const withDefinitionLinks = (value = "") => {
     return escaped.replace(/\b(config asset|config file|config)\b/gi, (match) =>
         `<a class="definition-link" href="${CONFIG_DEFINITION_URL}" target="_blank" rel="noreferrer">${match}</a>`
     );
+};
+
+const fallbackCopyText = (value) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    textarea.style.pointerEvents = "none";
+    document.body.appendChild(textarea);
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    const copied = document.execCommand("copy");
+    textarea.remove();
+
+    if (!copied) {
+        throw new Error("Copy failed");
+    }
+};
+
+const copyTextToClipboard = async (value) => {
+    if (!value) {
+        return;
+    }
+
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+        return;
+    }
+
+    fallbackCopyText(value);
+};
+
+const resetCopyButtonState = (button) => {
+    if (!(button instanceof HTMLElement)) {
+        return;
+    }
+
+    const status = button.querySelector(".copy-status");
+    if (!(status instanceof HTMLElement)) {
+        return;
+    }
+
+    const defaultValue = button.dataset.copyDefault || status.textContent || "Copy";
+    button.dataset.copyDefault = defaultValue;
+    status.textContent = defaultValue;
+
+    if (button._copyTimer) {
+        window.clearTimeout(button._copyTimer);
+        button._copyTimer = 0;
+    }
+};
+
+const flashCopyButtonState = (button, label) => {
+    if (!(button instanceof HTMLElement)) {
+        return;
+    }
+
+    const status = button.querySelector(".copy-status");
+    if (!(status instanceof HTMLElement)) {
+        return;
+    }
+
+    resetCopyButtonState(button);
+    status.textContent = label;
+    button._copyTimer = window.setTimeout(() => {
+        resetCopyButtonState(button);
+    }, 1400);
 };
 
 const normalizeRoute = (value) => {
@@ -157,6 +230,109 @@ const matchesSearchTokens = (searchText, tokens) => {
     }
 
     return tokens.every((token) => searchText.includes(token));
+};
+
+const countTokenMatches = (text, tokens) =>
+    tokens.reduce((count, token) => count + (text.includes(token) ? 1 : 0), 0);
+
+const truncateText = (value = "", maxLength = 120) => {
+    const text = String(value || "").trim();
+    if (!text) {
+        return "";
+    }
+
+    if (text.length <= maxLength) {
+        return text;
+    }
+
+    return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
+};
+
+const buildSearchSnippet = (text, tokens, fallback = "") => {
+    const source = String(text || fallback || "").replace(/\s+/g, " ").trim();
+    if (!source) {
+        return "";
+    }
+
+    if (!tokens.length) {
+        return truncateText(source, 120);
+    }
+
+    const lower = source.toLowerCase();
+    const matchIndexes = tokens
+        .map((token) => lower.indexOf(token))
+        .filter((index) => index >= 0);
+
+    if (!matchIndexes.length) {
+        return truncateText(source, 120);
+    }
+
+    const matchIndex = Math.min(...matchIndexes);
+    const start = Math.max(0, matchIndex - 34);
+    const end = Math.min(source.length, matchIndex + 96);
+    const prefix = start > 0 ? "..." : "";
+    const suffix = end < source.length ? "..." : "";
+
+    return `${prefix}${source.slice(start, end).trim()}${suffix}`;
+};
+
+const scoreSearchMatch = (meta, tokens) => {
+    if (!tokens.length) {
+        return 0;
+    }
+
+    const title = buildSearchText(meta?.title || "");
+    const aliases = buildSearchText(meta?.aliases || []);
+    const groupTitle = buildSearchText(meta?.groupTitle || "");
+    const summary = buildSearchText(meta?.summary || "");
+    const fullText = buildSearchText(meta?.searchText || "", title, aliases, groupTitle, summary);
+
+    if (!matchesSearchTokens(fullText, tokens)) {
+        return -1;
+    }
+
+    let score = countTokenMatches(fullText, tokens);
+
+    tokens.forEach((token) => {
+        if (title === token) {
+            score += 120;
+        }
+        if (title.startsWith(token)) {
+            score += 60;
+        }
+        if (title.includes(token)) {
+            score += 28;
+        }
+        if (aliases.includes(token)) {
+            score += 22;
+        }
+        if (summary.includes(token)) {
+            score += 8;
+        }
+        if (groupTitle.includes(token)) {
+            score += 4;
+        }
+    });
+
+    if (tokens.length > 1 && title.includes(tokens.join(" "))) {
+        score += 36;
+    }
+
+    return score;
+};
+
+const getSearchResultLabel = (meta) => {
+    const kind = meta?.kind || "page";
+
+    if (kind === "home") {
+        return "Home";
+    }
+
+    if (kind === "group") {
+        return "Group";
+    }
+
+    return "Tool";
 };
 
 const getSectionId = (section, scopeId = "") =>
@@ -371,7 +547,7 @@ const closeAiPanel = () => {
     aiToggle.setAttribute("aria-expanded", "false");
 };
 
-const attachHoldReset = (button, onComplete, durationMs = 10000) => {
+const attachHoldReset = (button, onComplete, durationMs = 500) => {
     if (!button) {
         return;
     }
@@ -566,29 +742,51 @@ const buildReferenceResult = ({ groupTitle, pageTitle, pageRoute, title, caption
 
 const buildIndexes = () => {
     pageSearchIndex.clear();
+    pageSearchMeta.clear();
     groupSearchIndex.clear();
     referenceSearchIndex.length = 0;
 
-    pageSearchIndex.set(
-        viewer.home.route,
-        buildSearchText(
-            viewer.home.title,
-            viewer.home.summary,
-            viewer.home.packagePath,
-            ...(viewer.home.keywords || []),
-            ...(viewer.home.sections || []).flatMap((section) => [
-                section.heading,
-                ...(section.body || []),
-                ...(section.list || [])
-            ])
-        )
+    const homeSearchText = buildSearchText(
+        viewer.home.title,
+        viewer.home.summary,
+        viewer.home.packagePath,
+        ...(viewer.home.keywords || []),
+        ...(viewer.home.sections || []).flatMap((section) => [
+            section.heading,
+            ...(section.body || []),
+            ...(section.list || []),
+            ...(section.numberedList || [])
+        ])
     );
 
+    pageSearchIndex.set(viewer.home.route, homeSearchText);
+    pageSearchMeta.set(viewer.home.route, {
+        title: viewer.home.title || "About",
+        summary: viewer.home.summary,
+        aliases: viewer.home.aliases || [],
+        groupTitle: viewer.home.group || "Documentation",
+        kind: "home",
+        context: [
+            viewer.home.summary,
+            ...((viewer.home.sections || []).flatMap((section) => section.body || []))
+        ].filter(Boolean).join(" "),
+        searchText: homeSearchText
+    });
+
     viewer.groups.forEach((group) => {
-        groupSearchIndex.set(
-            group.slug,
-            buildSearchText(group.title, group.landing?.summary, ...(group.landing?.keywords || []))
-        );
+        const groupRoute = `/${group.slug}`;
+        const groupSearchText = buildSearchText(group.title, group.landing?.summary, ...(group.landing?.keywords || []));
+        groupSearchIndex.set(group.slug, groupSearchText);
+        pageSearchIndex.set(groupRoute, groupSearchText);
+        pageSearchMeta.set(groupRoute, {
+            title: group.landing?.title || group.title,
+            summary: group.landing?.summary || "",
+            aliases: group.landing?.aliases || [],
+            groupTitle: group.title,
+            kind: "group",
+            context: group.landing?.summary || "",
+            searchText: groupSearchText
+        });
 
         group.pages.forEach((page) => {
             const pageRoute = `/${group.slug}/${page.slug}`;
@@ -605,7 +803,7 @@ const buildIndexes = () => {
 
             (page.sections || []).forEach((section) => {
                 const sectionId = getSectionId(section);
-                pageSearchParts.push(section.heading, ...(section.body || []), ...(section.list || []));
+                pageSearchParts.push(section.heading, ...(section.body || []), ...(section.list || []), ...(section.numberedList || []));
 
                 referenceSearchIndex.push(
                     buildReferenceResult({
@@ -620,6 +818,7 @@ const buildIndexes = () => {
                             section.heading,
                             ...(section.body || []),
                             ...(section.list || []),
+                            ...(section.numberedList || []),
                             ...((section.links || []).map((item) => item.label))
                         )
                     })
@@ -673,7 +872,7 @@ const buildIndexes = () => {
 
                 (sectionGroup.sections || []).forEach((section) => {
                     const sectionId = getSectionId(section, sectionGroupId);
-                    pageSearchParts.push(section.heading, ...(section.body || []), ...(section.list || []));
+                    pageSearchParts.push(section.heading, ...(section.body || []), ...(section.list || []), ...(section.numberedList || []));
 
                     referenceSearchIndex.push(
                         buildReferenceResult({
@@ -689,6 +888,7 @@ const buildIndexes = () => {
                                 section.heading,
                                 ...(section.body || []),
                                 ...(section.list || []),
+                                ...(section.numberedList || []),
                                 ...((section.links || []).map((item) => item.label))
                             )
                         })
@@ -753,7 +953,25 @@ const buildIndexes = () => {
                 });
             });
 
-            pageSearchIndex.set(pageRoute, buildSearchText(...pageSearchParts));
+            const pageSearchText = buildSearchText(...pageSearchParts);
+            pageSearchIndex.set(pageRoute, pageSearchText);
+            pageSearchMeta.set(pageRoute, {
+                title: page.title,
+                summary: page.summary,
+                aliases: page.aliases || [],
+                groupTitle,
+                kind: "page",
+                context: [
+                    page.summary,
+                    ...((page.sections || []).flatMap((section) => section.body || [])),
+                    ...((page.media || []).flatMap((item) => [item.caption, ...(item.body || [])])),
+                    ...((page.sectionGroups || []).flatMap((sectionGroup) => [
+                        ...(sectionGroup.summary || []),
+                        ...((sectionGroup.sections || []).flatMap((section) => section.body || []))
+                    ]))
+                ].filter(Boolean).join(" "),
+                searchText: pageSearchText
+            });
         });
     });
 };
@@ -850,11 +1068,30 @@ const getVisibleGroups = () => {
         .map((group) => {
             const groupEntry = resolveEntry(`/${group.slug}`);
             const groupMatch = matchesSearchTokens(groupSearchIndex.get(group.slug) || "", tokens);
-            const visiblePages = group.pages.filter((page) => {
-                const isCurrentPage = currentRoute === `/${group.slug}/${page.slug}`;
-                const isVisibleInNav = !page.hiddenInNav || isCurrentPage;
-                return isVisibleInNav && (groupMatch || matchesSearchTokens(pageSearchIndex.get(`/${group.slug}/${page.slug}`) || "", tokens));
-            });
+            const visiblePages = group.pages
+                .map((page) => {
+                    const pageRoute = `/${group.slug}/${page.slug}`;
+                    const isCurrentPage = currentRoute === pageRoute;
+                    const isVisibleInNav = !page.hiddenInNav || isCurrentPage;
+                    return {
+                        page,
+                        isVisibleInNav,
+                        score: scoreSearchMatch(pageSearchMeta.get(pageRoute), tokens)
+                    };
+                })
+                .filter(({ isVisibleInNav, score }) => {
+                    if (!isVisibleInNav) {
+                        return false;
+                    }
+
+                    if (!tokens.length) {
+                        return true;
+                    }
+
+                    return groupMatch || score >= 0;
+                })
+                .sort((a, b) => b.score - a.score || a.page.title.localeCompare(b.page.title))
+                .map(({ page }) => page);
 
             return {
                 group,
@@ -868,8 +1105,77 @@ const getVisibleGroups = () => {
 
 const getReferenceResults = () => {
     const tokens = tokenizeSearchQuery(getReferenceQuery(searchQuery));
+    return referenceSearchIndex
+        .map((item) => ({
+            item,
+            score: scoreSearchMatch(
+                {
+                    title: item.title,
+                    summary: item.caption,
+                    groupTitle: item.pageTitle,
+                    searchText: item.searchText
+                },
+                tokens
+            )
+        }))
+        .filter(({ item, score }) => !item.hiddenInNav && score >= 0)
+        .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
+        .map(({ item }) => item);
+};
 
-    return referenceSearchIndex.filter((item) => !item.hiddenInNav && matchesSearchTokens(item.searchText, tokens));
+const getSearchResults = () => {
+    const tokens = tokenizeSearchQuery(searchQuery);
+    if (!tokens.length) {
+        return [];
+    }
+
+    const pageResults = Array.from(pageSearchMeta.entries())
+        .map(([route, meta]) => ({
+            route,
+            meta,
+            score: scoreSearchMatch(meta, tokens)
+        }))
+        .filter(({ score }) => score >= 0)
+        .map(({ route, meta, score }) => ({
+            kind: meta.kind || "page",
+            pageRoute: route,
+            fragment: "",
+            title: meta.title || "Documentation",
+            meta: `${meta.groupTitle || "Documentation"} / ${getSearchResultLabel(meta)}`,
+            snippet: buildSearchSnippet(meta.context, tokens, meta.summary),
+            score
+        }));
+
+    const referenceResults = referenceSearchIndex
+        .map((item) => {
+            const meta = {
+                title: item.title,
+                summary: item.caption,
+                groupTitle: item.pageTitle,
+                kind: "reference",
+                context: item.caption || item.searchText,
+                searchText: item.searchText
+            };
+
+            return {
+                item,
+                score: scoreSearchMatch(meta, tokens)
+            };
+        })
+        .filter(({ item, score }) => !item.hiddenInNav && score >= 0)
+        .map(({ item, score }) => ({
+            kind: "reference",
+            pageRoute: item.pageRoute,
+            fragment: item.fragment,
+            title: item.title,
+            meta: `${item.pageTitle} / ${item.groupTitle}`,
+            snippet: buildSearchSnippet(item.caption, tokens, item.searchText),
+            score
+        }));
+
+    return [...pageResults, ...referenceResults]
+        .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+        .slice(0, 16);
 };
 
 const appendSectionContent = (body, section) => {
@@ -882,6 +1188,17 @@ const appendSectionContent = (body, section) => {
     if (section.list?.length) {
         const list = document.createElement("ul");
         section.list.forEach((item) => {
+            const li = document.createElement("li");
+            li.textContent = item;
+            list.appendChild(li);
+        });
+        body.appendChild(list);
+    }
+
+    if (section.numberedList?.length) {
+        const list = document.createElement("ol");
+        list.className = "section-numbered-list";
+        section.numberedList.forEach((item) => {
             const li = document.createElement("li");
             li.textContent = item;
             list.appendChild(li);
@@ -938,7 +1255,12 @@ const appendSectionContent = (body, section) => {
 const createSection = (section, scopeId = "") => {
     const article = document.createElement("section");
     const isOpen = section.defaultOpen !== false;
-    article.className = `doc-section content-section doc-accordion${isOpen ? " is-open" : ""}`;
+    const headingSlug = String(section.heading || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    article.className = `doc-section content-section doc-accordion${isOpen ? " is-open" : ""}${headingSlug ? ` section-${headingSlug}` : ""}`;
     article.id = getSectionId(section, scopeId);
 
     const summary = document.createElement("button");
@@ -961,6 +1283,34 @@ const createSection = (section, scopeId = "") => {
     });
 
     return article;
+};
+
+const createLeadAccordion = ({ title, open = true, fragmentId = "", populate }) => {
+    const isOpen = open || (fragmentId && currentFragment === normalizeFragment(fragmentId));
+    const wrapper = document.createElement("section");
+    wrapper.className = `doc-section content-section doc-accordion${isOpen ? " is-open" : ""}`;
+    if (fragmentId) {
+        wrapper.id = normalizeFragment(fragmentId);
+    }
+
+    const summary = document.createElement("button");
+    summary.type = "button";
+    summary.className = "doc-accordion-summary";
+    summary.setAttribute("aria-expanded", String(isOpen));
+    summary.textContent = title;
+    wrapper.appendChild(summary);
+
+    const body = document.createElement("div");
+    body.className = "section-body doc-accordion-body";
+    body.hidden = !isOpen;
+    populate(body);
+    wrapper.appendChild(body);
+
+    summary.addEventListener("click", () => {
+        setAccordionState(wrapper, body.hidden);
+    });
+
+    return wrapper;
 };
 
 const isOverviewSection = (section) => {
@@ -1390,7 +1740,10 @@ const renderChangelog = (entry) => {
 
 const renderPageAssets = (entry) => {
     const hasAssetLocation = Boolean(entry.assetLocation);
-    const mediaItems = entry.sectionGroups ? [] : (Array.isArray(entry.media) ? entry.media : []);
+    const allMediaItems = Array.isArray(entry.media) ? entry.media : [];
+    const mediaItems = entry.sectionGroups
+        ? allMediaItems.filter((item) => !(item.group || "").trim() && !item.pitchMedia)
+        : allMediaItems.filter((item) => !item.pitchMedia);
     const postMediaGroups = new Set(entry.postMediaGroups || []);
     const preMediaItems = mediaItems.filter((item) => !postMediaGroups.has(item.group || ""));
     const postMediaItems = mediaItems.filter((item) => postMediaGroups.has(item.group || ""));
@@ -1403,6 +1756,11 @@ const renderPageAssets = (entry) => {
         pageAssets.hidden = true;
         assetLocationCard.hidden = true;
         assetLocationPath.textContent = "";
+        if (assetLocationCopy) {
+            assetLocationCopy.hidden = true;
+            assetLocationCopy.dataset.copyValue = "";
+            resetCopyButtonState(assetLocationCopy);
+        }
         mediaGallery.innerHTML = "";
         pageAddonAssets.hidden = true;
         addonMediaGallery.innerHTML = "";
@@ -1412,6 +1770,11 @@ const renderPageAssets = (entry) => {
     pageAssets.hidden = !hasAssetLocation && preMediaItems.length === 0;
     assetLocationCard.hidden = !hasAssetLocation;
     assetLocationPath.textContent = hasAssetLocation ? entry.assetLocation : "";
+    if (assetLocationCopy) {
+        assetLocationCopy.hidden = !hasAssetLocation;
+        assetLocationCopy.dataset.copyValue = hasAssetLocation ? entry.assetLocation : "";
+        resetCopyButtonState(assetLocationCopy);
+    }
     renderMediaItems(mediaGallery, preMediaItems, entry);
     pageAddonAssets.hidden = postMediaItems.length === 0;
     renderMediaItems(addonMediaGallery, postMediaItems, entry);
@@ -1419,38 +1782,124 @@ const renderPageAssets = (entry) => {
 
 const renderPage = () => {
     const entry = resolveEntry(currentRoute);
-    const sections = Array.isArray(entry.sections) ? [...entry.sections] : [];
+    const isHomePage = entry.route === viewer.home.route;
+    const allSections = Array.isArray(entry.sections) ? [...entry.sections] : [];
+    const leadSectionHeadings = new Set(((entry.leadSectionHeadings && entry.leadSectionHeadings.length) ? entry.leadSectionHeadings : ["How To Use"]).map((value) => String(value)));
+    const leadSections = [];
+    const sections = [];
+
+    allSections.forEach((section) => {
+        if (leadSectionHeadings.has(String(section.heading || ""))) {
+            leadSections.push(section);
+        } else {
+            sections.push(section);
+        }
+    });
+
     const overviewSectionIndex = sections.findIndex((section) => isOverviewSection(section));
     const overviewSection = overviewSectionIndex >= 0 ? sections.splice(overviewSectionIndex, 1)[0] : null;
+    const aboutSectionIndex = sections.findIndex((section) => ["about", "brief description", "brief overview"].includes(String(section.heading || "").trim().toLowerCase()));
+    const aboutSection = aboutSectionIndex >= 0 ? sections.splice(aboutSectionIndex, 1)[0] : null;
+    const pitchSection = overviewSection || aboutSection;
+    const pitchMediaItems = (Array.isArray(entry.media) ? entry.media : []).filter((item) => item.pitchMedia);
+
+    document.body.classList.toggle("is-home-page", isHomePage);
 
     pageGroup.textContent = "";
+    pageGroup.hidden = true;
     pageTitle.textContent = entry.title || "";
     pageTitle.hidden = !entry.title;
     pageSummary.textContent = entry.summary || "";
+    if (pagePitch) {
+        pagePitch.innerHTML = "";
+        if (entry.purchaseLink) {
+            pagePitch.append("New here? Buy it on the Unity Asset Store. Already using it? ");
+            const docsLink = document.createElement("a");
+            docsLink.href = buildUrl(currentRoute, "documentation");
+            docsLink.className = "page-pitch-link";
+            docsLink.textContent = "The docs start below.";
+            docsLink.addEventListener("click", (event) => {
+                event.preventDefault();
+                navigateTo(currentRoute, false, "documentation");
+            });
+            pagePitch.appendChild(docsLink);
+        }
+        pagePitch.hidden = !entry.purchaseLink;
+    }
     pageMeta.textContent = "";
     pageMeta.hidden = true;
 
     if (pageOverview) {
         pageOverview.innerHTML = "";
-        pageOverview.hidden = !overviewSection;
+        pageOverview.hidden = true;
+    }
 
-        if (overviewSection?.body?.length) {
-            overviewSection.body.forEach((paragraph) => {
-                const p = document.createElement("p");
-                p.innerHTML = withDefinitionLinks(paragraph);
-                pageOverview.appendChild(p);
-            });
+    if (pagePitchMount) {
+        pagePitchMount.innerHTML = "";
+        pagePitchMount.hidden = !pitchSection && pitchMediaItems.length === 0;
+
+        if (pitchSection || pitchMediaItems.length) {
+            pagePitchMount.appendChild(
+                createLeadAccordion({
+                    title: "Overview",
+                    fragmentId: "the-pitch",
+                    open: true,
+                    populate: (body) => {
+                        (pitchSection?.body || []).forEach((paragraph) => {
+                            const p = document.createElement("p");
+                            p.innerHTML = withDefinitionLinks(paragraph);
+                            body.appendChild(p);
+                        });
+
+                        if (pitchMediaItems.length) {
+                            const mediaTarget = document.createElement("div");
+                            mediaTarget.className = "media-gallery";
+                            renderMediaItems(mediaTarget, pitchMediaItems, entry, { showGroupHeadings: false });
+                            body.appendChild(mediaTarget);
+                        }
+                    }
+                })
+            );
         }
+    }
+
+    if (pageDocumentationMount) {
+        pageDocumentationMount.innerHTML = "";
+        pageDocumentationMount.hidden = leadSections.length === 0;
+
+        if (leadSections.length) {
+            pageDocumentationMount.appendChild(
+                createLeadAccordion({
+                    title: "Documentation",
+                    fragmentId: "documentation",
+                    open: true,
+                    populate: (body) => {
+                        leadSections.forEach((section) => {
+                            body.appendChild(createSection(section));
+                        });
+                    }
+                })
+            );
+        }
+    }
+
+    if (pageLeadSections) {
+        pageLeadSections.innerHTML = "";
+        pageLeadSections.hidden = true;
     }
 
     if (pageActions) {
         pageActions.innerHTML = "";
         const actions = [];
 
+        if (entry.actions?.length) {
+            actions.push(...entry.actions);
+        }
+
         if (entry.purchaseLink) {
             actions.push({
                 href: entry.purchaseLink,
-                label: "Buy on Unity Asset Store"
+                label: "Buy Now on Unity Asset Store"
             });
         }
 
@@ -1468,7 +1917,7 @@ const renderPage = () => {
         versionParts.push(`Version ${entry.version}`);
     }
 
-    if (entry.sectionGroups?.length) {
+    if (!entry.versionLabel && entry.sectionGroups?.length) {
         entry.sectionGroups.forEach((group) => {
             if (group.version) {
                 versionParts.push(`${group.title} ${group.version}`);
@@ -1491,10 +1940,6 @@ const renderPage = () => {
 
     if (publisherLink) {
         publisherLink.href = buildExternalUrl(viewer.links?.publisher);
-    }
-
-    if (contactLink) {
-        contactLink.href = "mailto:contact@alexcrean.com";
     }
 
     sectionList.innerHTML = "";
@@ -1587,6 +2032,61 @@ const renderNav = () => {
 
             resultButton.appendChild(title);
             resultButton.appendChild(meta);
+            resultButton.addEventListener("click", () => {
+                navigateTo(result.pageRoute, false, result.fragment);
+            });
+
+            resultList.appendChild(resultButton);
+        });
+
+        navGroups.appendChild(resultList);
+        return;
+    }
+
+    if (searchQuery) {
+        const results = getSearchResults();
+        navGroups.innerHTML = "";
+
+        if (!results.length) {
+            const emptyState = document.createElement("div");
+            emptyState.className = "nav-empty";
+            emptyState.textContent = "No documentation matches that search yet.";
+            navGroups.appendChild(emptyState);
+            return;
+        }
+
+        const label = document.createElement("p");
+        label.className = "nav-search-heading";
+        label.textContent = "Search Results";
+        navGroups.appendChild(label);
+
+        const resultList = document.createElement("div");
+        resultList.className = "ref-results";
+
+        results.forEach((result) => {
+            const isActive = currentRoute === result.pageRoute && currentFragment === normalizeFragment(result.fragment || "");
+            const resultButton = document.createElement("button");
+            resultButton.type = "button";
+            resultButton.className = `ref-link${isActive ? " is-active" : ""}`;
+
+            const title = document.createElement("span");
+            title.className = "ref-link-title";
+            title.textContent = result.title;
+
+            const meta = document.createElement("span");
+            meta.className = "ref-link-meta";
+            meta.textContent = result.meta;
+
+            resultButton.appendChild(title);
+            resultButton.appendChild(meta);
+
+            if (result.snippet) {
+                const snippet = document.createElement("span");
+                snippet.className = "ref-link-snippet";
+                snippet.textContent = result.snippet;
+                resultButton.appendChild(snippet);
+            }
+
             resultButton.addEventListener("click", () => {
                 navigateTo(result.pageRoute, false, result.fragment);
             });
@@ -1807,6 +2307,31 @@ window.addEventListener("keydown", (event) => {
         closeAiPanel();
         closeSidebar();
     }
+});
+
+document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+        return;
+    }
+
+    const copyButton = target.closest("[data-copy-value]");
+    if (!(copyButton instanceof HTMLButtonElement)) {
+        return;
+    }
+
+    const value = copyButton.dataset.copyValue || "";
+    if (!value) {
+        return;
+    }
+
+    copyTextToClipboard(value)
+        .then(() => {
+            flashCopyButtonState(copyButton, "Copied");
+        })
+        .catch(() => {
+            flashCopyButtonState(copyButton, "Failed");
+        });
 });
 
 document.addEventListener("click", (event) => {

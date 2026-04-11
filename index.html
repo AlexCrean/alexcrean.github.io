@@ -36,23 +36,14 @@
                 </a>
                 <label class="search-wrap" for="searchInput">
                     <span class="visually-hidden">Search documentation</span>
-                    <input id="searchInput" type="search" placeholder="Search the docs or #ref">
+                    <span class="search-icon" aria-hidden="true"></span>
+                    <input id="searchInput" type="search" placeholder="Search the Docs">
                 </label>
             </div>
 
             <nav id="navGroups" class="nav-groups" aria-label="Documentation navigation"></nav>
 
-            <footer class="sidebar-footer">
-                <div class="footer-links">
-                    <p class="footer-message">Feel free to reach out and or connect!</p>
-                    <div class="footer-actions">
-                        <a id="personalLink" class="footer-link" href="#" target="_blank" rel="noreferrer">Personal</a>
-                        <a id="linkedinLink" class="footer-link" href="#" target="_blank" rel="noreferrer">LinkedIn</a>
-                        <a id="publisherLink" class="footer-link" href="#" target="_blank" rel="noreferrer">Publisher Profile</a>
-                        <a id="contactLink" class="footer-link" href="mailto:contact@alexcrean.com">Support: contact@alexcrean.com</a>
-                    </div>
-                </div>
-
+            <section class="sidebar-utility" aria-label="Site controls">
                 <button
                     class="access-toggle"
                     id="accessToggle"
@@ -123,7 +114,6 @@
                         </label>
 
                         <div class="access-actions">
-                            <button class="access-action-button" id="accessCollapse" type="button">Collapse</button>
                             <button
                                 class="access-action-button access-reset-hold"
                                 id="accessReset"
@@ -131,8 +121,9 @@
                                 aria-label="Hold to reset accessibility settings"
                             >
                                 <span class="access-reset-hold-fill" aria-hidden="true"></span>
-                                <span class="access-reset-hold-text">Hold to Reset</span>
+                                <span class="access-reset-hold-text">Reset</span>
                             </button>
+                            <button class="access-action-button" id="accessCollapse" type="button">Collapse</button>
                         </div>
                     </form>
                 </section>
@@ -149,13 +140,39 @@
                             <path d="M12 2 14.7 8.3 21 11l-6.3 2.7L12 20l-2.7-6.3L3 11l6.3-2.7Z"></path>
                         </svg>
                     </span>
-                    <span class="access-toggle-text">AI Usage</span>
+                    <span class="access-toggle-text">GenAI Usage Declaration</span>
                     <span class="access-toggle-chevron" aria-hidden="true"></span>
                 </button>
 
                 <section class="access-panel ai-panel" id="aiPanel" hidden aria-label="AI usage declaration">
                     <p class="access-declaration-copy">AI was used to assist with parts of this documentation site, some debugging, and some SVG creation. No AC_Tools Unity asset or production tool logic was generated with AI.</p>
                 </section>
+            </section>
+
+            <footer class="sidebar-footer">
+                <div class="footer-links">
+                    <div class="footer-publisher">
+                        <a id="publisherLink" class="footer-link brand-external-link" href="#" target="_blank" rel="noreferrer">Unity Publisher Profile</a>
+                    </div>
+                    <p class="footer-message">Feel free to reach out and or connect!</p>
+                    <div class="footer-actions">
+                        <a id="personalLink" class="footer-link" href="#" target="_blank" rel="noreferrer">Personal</a>
+                        <a id="linkedinLink" class="footer-link" href="#" target="_blank" rel="noreferrer">LinkedIn</a>
+                        <button
+                            id="supportCopy"
+                            class="copy-text-button footer-copy-button"
+                            type="button"
+                            data-copy-value="contact@alexcrean.com"
+                            aria-label="Copy support email"
+                        >
+                            <span class="copy-text-button-label">
+                                <span class="footer-inline-icon" aria-hidden="true"></span>
+                                <span>Contact me: contact@alexcrean.com</span>
+                            </span>
+                            <span class="copy-status">Copy</span>
+                        </button>
+                    </div>
+                </div>
             </footer>
         </aside>
 
@@ -165,13 +182,23 @@
                 <h1 id="pageTitle"></h1>
                 <p id="pageSummary" class="page-summary"></p>
                 <div id="pageOverview" class="page-overview" hidden></div>
+                <p id="pagePitch" class="page-pitch" hidden></p>
                 <p id="pageMeta" class="page-meta" hidden></p>
                 <div id="pageActions" class="page-actions" hidden></div>
             </header>
 
+            <section id="pagePitchMount" class="section-list page-lead-sections" hidden></section>
+            <section id="pageDocumentationMount" class="section-list page-lead-sections" hidden></section>
+            <section id="pageLeadSections" class="section-list page-lead-sections" hidden></section>
+
             <section id="pageAssets" class="page-assets" hidden>
                 <div id="assetLocationCard" class="asset-location-card" hidden>
-                    <p class="asset-card-label">Asset Location</p>
+                    <div class="asset-card-head">
+                        <p class="asset-card-label">Asset Location</p>
+                        <button id="assetLocationCopy" class="copy-text-button asset-copy-button" type="button" hidden>
+                            <span class="copy-status">Copy</span>
+                        </button>
+                    </div>
                     <p id="assetLocationPath" class="asset-location-path"></p>
                 </div>
                 <div id="mediaGallery" class="media-gallery"></div>

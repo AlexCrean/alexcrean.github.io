@@ -9,33 +9,33 @@ window.DOCS_VIEWER = {
     },
     home: {
         route: "/",
-        title: "",
+        title: "About",
         group: "Documentation Viewer",
-        summary: "Practical Unity tools by Alex Crean, built to remove friction, speed up editor work, and keep production workflows easier to trust.",
+        summary: "Practical Unity production tools built from real project work.",
         packagePath: "Assets / AC_Tools",
+        actions: [
+            {
+                href: "https://assetstore.unity.com/publishers/140384",
+                label: "See My Unity Publisher Profile"
+            }
+        ],
+        mediaHeading: "Peek at Upcoming Production Tools",
+        media: [
+            {
+                title: "Peek at Upcoming Production Tools",
+                defaultOpen: true,
+                src: "assets/images/UNITY TOOLS.png",
+                alt: "Overview board showing upcoming Unity production tools across Quality Of Life and Level Design toolboxes.",
+                caption: "A little look at what is already in progress."
+            }
+        ],
         sections: [
             {
                 heading: "Brief Description",
                 defaultOpen: false,
                 body: [
-                    "Current published scope covers the shared tooling layer plus the Quality Of Life documentation and safety tools.",
-                    "These packages are built around day-to-day Unity work: clearer context, safer editing, better review flow, and less wasted time moving through repetitive editor tasks."
-                ]
-            },
-            {
-                heading: "How To Use",
-                defaultOpen: true,
-                body: [
-                    "Start from the package or add-on you need, then check the parts that affect real project use: where it lives, what state it stores, what it changes in the editor, and how it fits into an existing workflow.",
-                    "These pages focus on the non-obvious parts, including config assets, persistence under ProjectSettings, extension points, and behavior that matters during setup, handoff, or review."
-                ]
-            },
-            {
-                heading: "Feature List",
-                list: [
-                    "Shared covers theme assets, editor chrome, compatibility wrappers, and common lookup utilities.",
-                    "Quality Of Life currently covers Document Inside, Document Outside, and Don't Edit.",
-                    "The published focus is production utility: documentation where work happens, safer editing surfaces, and editor tooling that removes avoidable friction."
+                    "Made from the tools I kept wishing existed while shipping everything from game jams to long, collaborative Unity projects.",
+                    "The focus stays the same across all of them: clearer context, safer edits, and making the editor more personable."
                 ]
             }
         ]
@@ -224,15 +224,33 @@ window.DOCS_VIEWER = {
                     title: "Document Inside",
                     versionLabel: "Core 1.0 / Hand-Off Add-on 1.0",
                     purchaseLink: "https://assetstore.unity.com/packages/slug/368278",
-                    summary: "In-Unity documentation for assets, objects, folders, and scenes, built around a base notes workflow with Hand-Off available as a separate review add-on.",
+                    summary: "In-Unity documentation for assets, objects, folders, and scenes that stays flexible as the project changes, with Hand-Off available as a separate review add-on.",
                     packagePath: "Assets / AC_Tools / Quality Of Life Tools by AC / Better Documentation / Document Inside",
                     assetLocation: "Assets / AC_Tools / Quality Of Life Tools by AC / Better Documentation / Document Inside",
                     mediaHeading: "Unity References",
                     postMediaGroups: ["Hand-Off Add-on"],
                     notesPath: "assets/tools/document-inside/Information.txt",
-                    aliases: ["/qol/document-inside", "/qualityoflife/documentinside", "/qol/betterinside", "/qualityoflife/betterinside"],
+                    aliases: ["/documentinside", "/qol/document-inside", "/qualityoflife/documentinside", "/qol/betterinside", "/qualityoflife/betterinside"],
                     keywords: ["docs", "notes", "inside", "better inside", "handoff", "review", "xml"],
+                    sections: [
+                        {
+                            heading: "Brief Overview",
+                            body: [
+                                "Document Inside puts the useful context back on the thing you are actually working on, so setup notes, ownership, caveats, and review state stop drifting off into separate docs and forgotten chat threads.",
+                                "Good documentation changes as the project changes. In a Unity project that keeps expanding, the stronger approach is to keep that context inside the engine, where it can stay close to the asset, object, folder, or scene it actually belongs to.",
+                                "It is built for teams who want cleaner hand-off, faster understanding, and less risk when someone opens a scene, prefab, folder, or object and needs to know what matters before touching it."
+                            ]
+                        }
+                    ],
                     media: [
+                        {
+                            title: "Document Inside Overview",
+                            defaultOpen: true,
+                            pitchMedia: true,
+                            src: "assets/images/LUWA - Document Inside.svg",
+                            alt: "Promotional overview window for Document Inside showing the richer pitch presentation for the tool.",
+                            caption: "The fast read on why Document Inside is useful before you drop into the implementation details."
+                        },
                         {
                             group: "Core Document Inside",
                             title: "Inspector Preview",
@@ -303,6 +321,13 @@ window.DOCS_VIEWER = {
                             ],
                             keywords: ["core", "notes", "xml", "document inside", "base"],
                             sections: [
+                                {
+                                    heading: "Brief Overview",
+                                    body: [
+                                        "Document Inside keeps the useful project context on the exact asset, object, folder, or scene people are already touching, instead of scattering it across separate docs, chats, and review notes.",
+                                        "The result is less second-guessing, less editor tab-hopping, and a cleaner hand-off path when the next person needs to understand what something is, why it exists, and what is safe to change."
+                                    ]
+                                },
                                 {
                                     heading: "Notes in the Inspector",
                                     defaultOpen: true,
@@ -575,61 +600,121 @@ window.DOCS_VIEWER = {
                     purchaseLink: "https://assetstore.unity.com/packages/slug/370620",
                     summary: "Locking and protection for high-risk assets and objects, with visible or hidden modes and blocked editor actions.",
                     packagePath: "Assets / AC_Tools / Quality Of Life Tools by AC / Better Documentation / Don't Edit",
+                    assetLocation: "Assets / AC_Tools / Quality Of Life Tools by AC / Better Documentation / Don't Edit",
+                    leadSectionHeadings: ["How To Use"],
                     mediaHeading: "Unity References",
                     notesPath: "assets/tools/dont-edit/Information.txt",
                     aliases: ["/qol/dont-edit"],
                     keywords: ["lock", "warning", "protection", "review only"],
                     media: [
                         {
+                            group: "Ways to Lock",
+                            title: "Menu Drop Down",
+                            src: "assets/images/Don't Edit.png",
+                            alt: "Unity Developer menu showing the AC_Tools path to Don't Edit.",
+                            caption: "Developer -> AC_Tools -> Don't Edit or Ctrl + Alt + 4.",
+                            body: [
+                                "This is the clean entry point when you want to open the tool deliberately rather than locking from a one-off context action.",
+                                "It is the better starting path when you expect to choose a mode, inspect current locks, or adjust the shared behavior afterwards."
+                            ]
+                        },
+                        {
+                            group: "Ways to Lock",
                             title: "Don't Edit Window",
                             src: "assets/images/Window Tool-premium.png",
                             alt: "Don't Edit tool window showing quick lock controls, configuration, and locked items.",
                             caption: "The main window used to apply locks, configure behavior, and inspect protected targets.",
                             body: [
-                                "The top area is built for fast locking. You can drop the current selection or another target into the window, choose a mode, and apply the lock without hunting through multiple menus.",
-                                "The Configuration foldout controls the shared enforcement rules for the tool, and the Locked Items area gives you a direct way to inspect what is currently protected."
+                                "The top of the window is the operational part of the tool: choose the target, choose the lock mode, and apply it without bouncing through multiple editor menus.",
+                                "Below that, the same window carries the config foldout and the locked-items list, so the workflow stays in one place when you need to move from applying a lock to checking what the tool is currently enforcing."
                             ]
                         },
                         {
+                            group: "Ways to Lock",
                             title: "Drop Mode Options",
                             src: "assets/images/Options for Edit-premium.png",
                             alt: "Drop Mode selector showing Don't Edit But See and Don't Edit Or See options.",
                             caption: "The lock mode decides whether the target stays visible or is hidden from normal editing flow.",
                             body: [
-                                "DontEditButSee keeps the target available in the editor but blocks editing, which is useful for reference objects, review-only assets, or setup that should remain visible.",
-                                "DontEditOrSee is the stronger lock. It is intended for content that should be protected from normal selection and opening flow as well."
+                                "DontEditButSee is the visible lock. It is useful when the object still needs to remain in view as context, but should stop inviting casual edits.",
+                                "DontEditOrSee is the stronger mode. It shifts the tool from read-only protection into active interruption of normal selection and opening flow."
                             ]
                         },
                         {
-                            title: "Menu Path",
-                            src: "assets/images/Don't Edit.png",
-                            alt: "Unity Developer menu showing the AC_Tools path to Don't Edit.",
-                            caption: "Developer -> AC_Tools -> Don't Edit or Ctrl + Alt + 4."
+                            group: "Ways to Lock",
+                            title: "Right-Click Lock Flow",
+                            src: "assets/images/Right Click on Hierarchy.png",
+                            alt: "Unity Hierarchy context menu showing the Don't Edit options on right click.",
+                            caption: "You can also reach the lock workflow directly from the Hierarchy context menu when working in-scene.",
+                            body: [
+                                "This is the faster in-scene route when the object is already in front of you and the decision is local: protect this now.",
+                                "It matters less as a discovery surface and more as a speed path once the tool becomes part of normal scene maintenance."
+                            ]
                         },
                         {
+                            group: "Configuration",
                             title: "Config Asset",
                             src: "assets/images/Don'tEditLockConfigLocation-premium.png",
                             alt: "Project window showing the Don't Edit package folder with the config asset visible.",
-                            caption: "The shared settings asset for lock enforcement, hidden selection rules, blocked open behavior, logging, and scene tool visibility."
+                            caption: "The shared settings asset for lock enforcement, hidden selection rules, blocked open behavior, logging, and scene tool visibility.",
+                            body: [
+                                "This is the project-level rules object behind the tool, not just a local window preference.",
+                                "If the lock behavior feels too strict or too soft, this is the asset that explains why and the place where that behavior is adjusted."
+                            ]
+                        },
+                        {
+                            group: "Lock Indicators",
+                            title: "Hierarchy Lock Indicator",
+                            src: "assets/images/Don'tEditIconInHierarchy.png",
+                            alt: "Unity Hierarchy showing the full Don't Edit indicator on a protected item.",
+                            caption: "Protected items can show a clear hierarchy indicator so locked content stands out before you interact with it.",
+                            body: [
+                                "The full indicator is the strongest hierarchy signal in the set. It is the version you want when the item should read immediately as protected before anyone even clicks it.",
+                                "The partial state shown next belongs to the same visual language, but it communicates a lighter or mixed restriction state rather than the full locked treatment."
+                            ]
+                        },
+                        {
+                            group: "Lock Indicators",
+                            title: "Partial Hierarchy Indicator",
+                            src: "assets/images/PartialDon'tEditIconInHierarchy.png",
+                            alt: "Unity Hierarchy showing a partial Don't Edit indicator state on an item.",
+                            caption: "The partial indicator helps distinguish restricted states without making every protected item look identical.",
+                            body: [
+                                "This is useful when the hierarchy needs to communicate nuance rather than a single blunt yes-or-no lock state.",
+                                "Together, the full and partial indicators give the tool a hierarchy language that can be read quickly without opening the object first."
+                            ]
                         }
                     ],
                     sections: [
                         {
-                            heading: "Brief Description",
+                            heading: "About",
                             defaultOpen: false,
                             body: [
-                                "Don't Edit is the safety layer for project content that should stay visible, trusted, and hard to disturb by accident.",
-                                "It supports two lock modes. One keeps the target visible but read-only. The other hides it from normal selection and opening workflows.",
-                                "Typical use cases are shared scenes, protected setup objects, review-only assets, and any content where accidental edits are expensive to unwind."
+                                "Don't Edit gives high-risk project content a deliberate layer of friction before someone casually renames, moves, opens, or edits the wrong thing.",
+                                "It supports two lock modes. One keeps the target visible but read-only. The other pushes it further out of the normal selection and opening flow.",
+                                "It works best for the kind of content that quietly breaks a scene, a prefab setup, or a shared workflow when someone nudges it at the wrong moment."
                             ]
                         },
                         {
                             heading: "How To Use",
                             defaultOpen: true,
                             body: [
-                                "Lock the current selection from the GameObject or Assets menu, or use the Don't Edit window to choose a target and apply the lock mode there.",
-                                "Use DontEditButSee when the object should remain visible but read-only. Use DontEditOrSee when normal selection and opening should be blocked as well.",
-                                "The config asset is the shared rule set for the tool. It decides whether locked content can still be edited, whether hidden locks block selection and opening, whether scene tools should disappear for locked selections, and whether lock actions should log feedback while you work."
+                                "Use this flow to lock something on purpose, verify the result, and then tune the strictness if needed. The window, drop mode selector, and config asset images above map to these steps."
+                            ],
+                            numberedList: [
+                                "Select the asset or GameObject you want to protect.",
+                                "Open Don't Edit from Developer -> AC_Tools -> Don't Edit, or use the Assets or GameObject menu if you already know what you want to lock.",
+                                "In the window, drop in the current target if needed and choose the lock mode. Use DontEditButSee when the target should stay visible but read-only. Use DontEditOrSee when it should also be hidden from normal selection and opening flow.",
+                                "Apply the lock and immediately test the result in the editor. Try selecting it, opening it, renaming it, or making a small edit so you can confirm the protection matches the intention.",
+                                "If the lock feels too loose or too strict, open the config area and adjust the shared rules for blocked selection, opening, scene tools, and feedback logging.",
+                                "When you need to review or remove protection later, use the main window to inspect the locked items list and unlock from there."
+                            ]
+                        },
+                        {
+                            heading: "Config",
+                            body: [
+                                "The config asset is the shared rule set for the tool. It decides whether locked content can still be edited, whether hidden locks block selection and opening, whether scene tools should disappear for locked selections, and whether lock actions should log feedback while you work.",
+                                "If you are setting the tool up for a team, this is the part that defines how strict the protection should feel in day-to-day editor use."
                             ]
                         }
                     ],

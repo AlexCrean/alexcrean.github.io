@@ -257,7 +257,15 @@
                     <a class="footer-link" href="https://www.alexcrean.com/" target="_blank" rel="noreferrer">Personal</a>
                     <a class="footer-link" href="https://www.linkedin.com/in/alex-crean/" target="_blank" rel="noreferrer">LinkedIn</a>
                     <a class="footer-link" href="https://assetstore.unity.com/publishers/140384" target="_blank" rel="noreferrer">Publisher Profile</a>
-                    <a class="footer-link" href="mailto:contact@alexcrean.com">Support: contact@alexcrean.com</a>
+                    <button
+                        class="copy-text-button footer-copy-button"
+                        type="button"
+                        data-copy-value="contact@alexcrean.com"
+                        aria-label="Copy support email"
+                    >
+                        <span class="copy-text-button-label">Support: contact@alexcrean.com</span>
+                        <span class="copy-status" aria-hidden="true">Copy</span>
+                    </button>
                 </div>
 
                 <button class="access-toggle" type="button" aria-expanded="false" aria-controls="accessPanel404">
@@ -487,6 +495,80 @@
                 aiToggle.setAttribute("aria-expanded", "false");
             }
 
+            function fallbackCopyText(value) {
+                const textarea = document.createElement("textarea");
+                textarea.value = value;
+                textarea.setAttribute("readonly", "");
+                textarea.style.position = "fixed";
+                textarea.style.opacity = "0";
+                textarea.style.pointerEvents = "none";
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, textarea.value.length);
+                const copied = document.execCommand("copy");
+                textarea.remove();
+
+                if (!copied) {
+                    throw new Error("Copy failed");
+                }
+            }
+
+            function copyTextToClipboard(value) {
+                if (!value) {
+                    return Promise.resolve();
+                }
+
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(value);
+                }
+
+                return new Promise(function (resolve, reject) {
+                    try {
+                        fallbackCopyText(value);
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+
+            function resetCopyButtonState(button) {
+                if (!button) {
+                    return;
+                }
+
+                const status = button.querySelector(".copy-status");
+                if (!status) {
+                    return;
+                }
+
+                const defaultValue = button.dataset.copyDefault || status.textContent || "Copy";
+                button.dataset.copyDefault = defaultValue;
+                status.textContent = defaultValue;
+
+                if (button._copyTimer) {
+                    window.clearTimeout(button._copyTimer);
+                    button._copyTimer = 0;
+                }
+            }
+
+            function flashCopyButtonState(button, label) {
+                if (!button) {
+                    return;
+                }
+
+                const status = button.querySelector(".copy-status");
+                if (!status) {
+                    return;
+                }
+
+                resetCopyButtonState(button);
+                status.textContent = label;
+                button._copyTimer = window.setTimeout(function () {
+                    resetCopyButtonState(button);
+                }, 1400);
+            }
+
             if (accessToggle && accessPanel && accessForm && accessReset) {
                 let accessibilityPrefs = loadAccessibilityPrefs();
                 applyAccessibilityPrefs(accessibilityPrefs);
@@ -582,6 +664,23 @@
             }, 500);
 
             document.addEventListener("click", function (event) {
+                const copyButton = event.target instanceof Element ? event.target.closest("[data-copy-value]") : null;
+                if (copyButton instanceof HTMLButtonElement) {
+                    const value = copyButton.dataset.copyValue || "";
+                    if (!value) {
+                        return;
+                    }
+
+                    copyTextToClipboard(value)
+                        .then(function () {
+                            flashCopyButtonState(copyButton, "Copied");
+                        })
+                        .catch(function () {
+                            flashCopyButtonState(copyButton, "Failed");
+                        });
+                    return;
+                }
+
                 if (!aiPanel || !aiToggle || aiPanel.hidden) {
                     return;
                 }
