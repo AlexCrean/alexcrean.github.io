@@ -10,6 +10,7 @@ const aiToggle = document.getElementById("aiToggle");
 const aiPanel = document.getElementById("aiPanel");
 const achievementToggle = document.getElementById("achievementToggle");
 const achievementPanel = document.getElementById("achievementPanel");
+const settingsBackButton = document.getElementById("settingsBackButton");
 const accessForm = document.getElementById("accessForm");
 const accessCollapse = document.getElementById("accessCollapse");
 const accessReset = document.getElementById("accessReset");
@@ -19,6 +20,11 @@ const publisherLink = document.getElementById("publisherLink");
 const pageGroup = document.getElementById("pageGroup");
 const pageTitle = document.getElementById("pageTitle");
 const pageSummary = document.getElementById("pageSummary");
+const pageCommentHotspot = document.getElementById("pageCommentHotspot");
+const pageCommentBox = document.getElementById("pageCommentBox");
+const pageCommentInput = document.getElementById("pageCommentInput");
+const pageCommentSave = document.getElementById("pageCommentSave");
+const pageCommentStatus = document.getElementById("pageCommentStatus");
 const pageOverview = document.getElementById("pageOverview");
 const pagePitch = document.getElementById("pagePitch");
 const pageMeta = document.getElementById("pageMeta");
@@ -48,7 +54,6 @@ const referenceSearchIndex = [];
 const openGroups = new Set(viewer.groups.map((group) => group.slug));
 const isFileProtocol = window.location.protocol === "file:";
 const ACCESS_STORAGE_KEY = "ac_tools_accessibility";
-const ACHIEVEMENTS_STORAGE_KEY = "ac_tools_achievements";
 const defaultAccessibilityPrefs = {
     textSize: "default",
     contrast: "default",
@@ -89,6 +94,7 @@ const HOME_REPLAY_EASTER_EGG_LINE = "Certified Button Clicker Unlocked";
 const HOME_REPLAY_ULTRA_RARE_ODDS_DENOMINATOR = 25;
 const HOME_REPLAY_ULTRA_RARE_DURATION_MS = 2200;
 const HOME_REPLAY_ULTRA_RARE_LINE = "Ultra Rare Unlocked: Binary Rain Mode";
+const DOCUMENT_INSIDE_ROUTE = "/qol/documentinside";
 
 let accessibilityPrefs = { ...defaultAccessibilityPrefs };
 let headerScrollTicking = false;
@@ -102,8 +108,11 @@ let homeTitleReplayCooldownTimer = 0;
 let homeReplayEasterEggTimer = 0;
 let homeReplayBinaryRainTimer = 0;
 let achievementsState = {
-    replayClickerUnlocked: false
+    replayClickerUnlocked: false,
+    whyStopThereUnlocked: false,
+    siteCartographerUnlocked: false
 };
+let documentInsideCommentFound = false;
 
 const escapeHtml = (value = "") =>
     String(value)
@@ -205,6 +214,33 @@ const normalizeRoute = (value) => {
 
     const normalized = `/${cleanValue.replace(/^\/+|\/+$/g, "")}`.toLowerCase();
     return normalized === "/index.html" ? "/" : normalized;
+};
+
+const unlockDeepSearchAchievement = () => {
+    if (achievementsState.siteCartographerUnlocked) {
+        return;
+    }
+
+    achievementsState.siteCartographerUnlocked = true;
+    syncAchievementsUi();
+    openAchievementPanel();
+};
+
+const renderPageCommentBox = (entry) => {
+    if (!pageCommentBox || !pageCommentInput || !pageCommentStatus || !pageCommentHotspot) {
+        return;
+    }
+
+    const isDocumentInsidePage = normalizeRoute(entry?.route || "") === DOCUMENT_INSIDE_ROUTE;
+    pageCommentHotspot.hidden = !isDocumentInsidePage || documentInsideCommentFound;
+    pageCommentBox.hidden = !isDocumentInsidePage || !documentInsideCommentFound;
+    if (!isDocumentInsidePage) {
+        pageCommentStatus.textContent = "";
+        pageCommentInput.value = "";
+        return;
+    }
+
+    pageCommentStatus.textContent = "";
 };
 
 const normalizeFragment = (value) =>
@@ -487,34 +523,24 @@ const saveAccessibilityPrefs = () => {
     } catch {}
 };
 
-const loadAchievementsState = () => {
-    try {
-        const raw = window.localStorage.getItem(ACHIEVEMENTS_STORAGE_KEY);
-        if (!raw) {
-            return { replayClickerUnlocked: false };
-        }
+const isAnyAchievementUnlocked = () =>
+    Boolean(
+        achievementsState.replayClickerUnlocked ||
+            achievementsState.whyStopThereUnlocked ||
+            achievementsState.siteCartographerUnlocked
+    );
 
-        const parsed = JSON.parse(raw);
-        return {
-            replayClickerUnlocked: Boolean(parsed?.replayClickerUnlocked)
-        };
-    } catch {
-        return { replayClickerUnlocked: false };
-    }
-};
-
-const saveAchievementsState = () => {
-    try {
-        window.localStorage.setItem(ACHIEVEMENTS_STORAGE_KEY, JSON.stringify(achievementsState));
-    } catch {}
-};
+const getUnlockedAchievementCount = () =>
+    (achievementsState.replayClickerUnlocked ? 1 : 0) +
+    (achievementsState.whyStopThereUnlocked ? 1 : 0) +
+    (achievementsState.siteCartographerUnlocked ? 1 : 0);
 
 const syncAchievementsUi = () => {
     if (!(achievementToggle instanceof HTMLButtonElement)) {
         return;
     }
 
-    const unlocked = Boolean(achievementsState.replayClickerUnlocked);
+    const unlocked = isAnyAchievementUnlocked();
     const label = achievementToggle.querySelector(".access-toggle-text");
     if (label) {
         label.textContent = unlocked ? "Achievements" : "Achievements (Locked)";
@@ -532,9 +558,38 @@ const syncAchievementsUi = () => {
     }
 
     if (achievementPanel) {
-        achievementPanel.innerHTML = unlocked
-            ? '<p class="access-declaration-copy"><strong>Certified Button Clicker Unlocked</strong><br>Score: 10%</p>'
-            : '<p class="access-declaration-copy">Unlock the secret replay easter egg to reveal achievements.</p>';
+        const unlockedCount = getUnlockedAchievementCount();
+        const totalAchievements = 3;
+        const unlockedRows = [];
+
+        if (achievementsState.replayClickerUnlocked) {
+            unlockedRows.push(`
+                <article class="achievement-row achievement-standard is-unlocked">
+                    <p class="achievement-title">Certified Button Clicker Unlocked</p>
+                </article>
+            `);
+        }
+
+        if (achievementsState.whyStopThereUnlocked) {
+            unlockedRows.push(`
+                <article class="achievement-row achievement-ultra is-unlocked">
+                    <p class="achievement-title">Why stop there?!</p>
+                </article>
+            `);
+        }
+
+        if (achievementsState.siteCartographerUnlocked) {
+            unlockedRows.push(`
+                <article class="achievement-row achievement-standard is-unlocked">
+                    <p class="achievement-title">Deep Search</p>
+                </article>
+            `);
+        }
+
+        achievementPanel.innerHTML = `
+            <p class="achievement-total-score">Achievements Found: ${unlockedCount}/${totalAchievements}</p>
+            ${unlockedRows.join("")}
+        `;
     }
 };
 
@@ -646,7 +701,7 @@ const closeAiPanel = () => {
 };
 
 const openAchievementPanel = () => {
-    if (!achievementPanel || !achievementToggle || !achievementsState.replayClickerUnlocked) {
+    if (!achievementPanel || !achievementToggle || !isAnyAchievementUnlocked()) {
         return;
     }
 
@@ -753,7 +808,7 @@ const toggleAiPanel = () => {
 };
 
 const toggleAchievementPanel = () => {
-    if (!achievementPanel || !achievementsState.replayClickerUnlocked) {
+    if (!achievementPanel || !isAnyAchievementUnlocked()) {
         return;
     }
 
@@ -855,7 +910,7 @@ const spawnReplayBinaryRain = () => {
         bit.textContent = Math.random() < 0.5 ? "0" : "1";
         bit.style.left = `${Math.random() * 100}%`;
         bit.style.animationDelay = `${Math.random() * 0.35}s`;
-        bit.style.animationDuration = `${1.6 + Math.random() * 1.4}s`;
+        bit.style.animationDuration = `${3.8 + Math.random() * 2.6}s`;
         container.appendChild(bit);
     }
 
@@ -876,11 +931,15 @@ const maybeTriggerReplayEasterEgg = (targetText) => {
         return;
     }
 
-    const roll = Math.random();
-    const ultraRareChance = 1 / HOME_REPLAY_ULTRA_RARE_ODDS_DENOMINATOR;
-    const normalChance = 1 / HOME_REPLAY_EASTER_EGG_ODDS_DENOMINATOR;
-    const ultraRareWon = roll < ultraRareChance;
-    const normalWon = !ultraRareWon && roll < ultraRareChance + normalChance;
+    const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+    const lcm =
+        (HOME_REPLAY_EASTER_EGG_ODDS_DENOMINATOR * HOME_REPLAY_ULTRA_RARE_ODDS_DENOMINATOR) /
+        gcd(HOME_REPLAY_EASTER_EGG_ODDS_DENOMINATOR, HOME_REPLAY_ULTRA_RARE_ODDS_DENOMINATOR);
+    const ultraRareSlots = lcm / HOME_REPLAY_ULTRA_RARE_ODDS_DENOMINATOR;
+    const normalSlots = lcm / HOME_REPLAY_EASTER_EGG_ODDS_DENOMINATOR;
+    const roll = Math.floor(Math.random() * lcm);
+    const ultraRareWon = roll < ultraRareSlots;
+    const normalWon = !ultraRareWon && roll < ultraRareSlots + normalSlots;
     if (!ultraRareWon && !normalWon) {
         return;
     }
@@ -902,18 +961,25 @@ const maybeTriggerReplayEasterEgg = (targetText) => {
     if (ultraRareWon) {
         spawnReplayBinaryRain();
     }
+    pageTitle.classList.remove("is-easter-egg", "is-easter-egg-ultra");
     pageTitle.classList.add("is-easter-egg");
+    if (ultraRareWon) {
+        pageTitle.classList.add("is-easter-egg-ultra");
+    }
     pageTitle.textContent = rewardLine;
 
-    if (!achievementsState.replayClickerUnlocked) {
-        achievementsState.replayClickerUnlocked = true;
-        saveAchievementsState();
-        syncAchievementsUi();
+    const hadAnyUnlock = isAnyAchievementUnlocked();
+    achievementsState.replayClickerUnlocked = true;
+    if (ultraRareWon) {
+        achievementsState.whyStopThereUnlocked = true;
+    }
+    syncAchievementsUi();
+    if (!hadAnyUnlock || ultraRareWon) {
         openAchievementPanel();
     }
 
     homeReplayEasterEggTimer = window.setTimeout(() => {
-        pageTitle.classList.remove("is-easter-egg");
+        pageTitle.classList.remove("is-easter-egg", "is-easter-egg-ultra");
         if (!isHomeTitleDeciphering) {
             pageTitle.textContent = targetText;
         }
@@ -2556,6 +2622,7 @@ const renderPage = () => {
     pageTitle.textContent = entry.title || "";
     pageTitle.hidden = !entry.title;
     pageSummary.textContent = entry.summary || "";
+    renderPageCommentBox(entry);
     if (pagePitch) {
         pagePitch.innerHTML = "";
         if (entry.purchaseLink) {
@@ -2773,6 +2840,10 @@ const renderNav = () => {
             return;
         }
 
+        if (getReferenceQuery(searchQuery)) {
+            unlockDeepSearchAchievement();
+        }
+
         const label = document.createElement("p");
         label.className = "nav-search-heading";
         label.textContent = "Reference Matches";
@@ -2785,7 +2856,11 @@ const renderNav = () => {
             const resultButton = createInternalLink({
                 className: `ref-link${currentRoute === result.pageRoute && currentFragment === result.fragment ? " is-active" : ""}`,
                 route: result.pageRoute,
-                fragment: result.fragment
+                fragment: result.fragment,
+                onNavigate: () => {
+                    unlockDeepSearchAchievement();
+                    navigateTo(result.pageRoute, false, result.fragment);
+                }
             });
 
             const title = document.createElement("span");
@@ -2998,6 +3073,49 @@ if (achievementToggle) {
     });
 }
 
+if (pageCommentHotspot) {
+    pageCommentHotspot.addEventListener("click", () => {
+        const onDocumentInsidePage = normalizeRoute(currentRoute) === DOCUMENT_INSIDE_ROUTE;
+        if (!onDocumentInsidePage) {
+            return;
+        }
+        documentInsideCommentFound = true;
+        renderPageCommentBox(resolveEntry(currentRoute));
+    });
+}
+
+if (pageCommentSave && pageCommentInput && pageCommentStatus) {
+    pageCommentSave.addEventListener("click", () => {
+        const onDocumentInsidePage = normalizeRoute(currentRoute) === DOCUMENT_INSIDE_ROUTE;
+        if (!onDocumentInsidePage) {
+            return;
+        }
+
+        const comment = pageCommentInput.value.trim();
+        if (!comment) {
+            pageCommentStatus.textContent = "Add a comment first.";
+            return;
+        }
+
+        pageCommentStatus.textContent = `Documented comment: "${comment}"`;
+    });
+}
+
+if (settingsBackButton) {
+    settingsBackButton.addEventListener("click", () => {
+        closeAccessPanel();
+        closeAiPanel();
+        closeAchievementPanel();
+
+        if (window.history.length > 1) {
+            window.history.back();
+            return;
+        }
+
+        navigateTo("/");
+    });
+}
+
 if (accessForm) {
     accessForm.addEventListener("change", (event) => {
         const target = event.target;
@@ -3151,7 +3269,6 @@ document.addEventListener("click", (event) => {
 currentRoute = resolveEntry(getRequestedRoute()).route;
 currentFragment = getRequestedFragment();
 accessibilityPrefs = loadAccessibilityPrefs();
-achievementsState = loadAchievementsState();
 applyAccessibilityPrefs();
 syncAccessibilityForm();
 syncAchievementsUi();
