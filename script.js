@@ -1813,10 +1813,18 @@ const renderPage = () => {
     if (pagePitch) {
         pagePitch.innerHTML = "";
         if (entry.purchaseLink) {
-            pagePitch.append("New here? Buy it on the Unity Asset Store. Already using it? ");
+            pagePitch.append("New here? Find it on the ");
+            const storeLink = document.createElement("a");
+            storeLink.href = entry.purchaseLink;
+            storeLink.className = "page-pitch-link page-pitch-pill";
+            storeLink.target = "_blank";
+            storeLink.rel = "noreferrer";
+            storeLink.textContent = "Unity Asset Store";
+            pagePitch.appendChild(storeLink);
+            pagePitch.append(". Already using it? ");
             const docsLink = document.createElement("a");
             docsLink.href = buildUrl(currentRoute, "documentation");
-            docsLink.className = "page-pitch-link";
+            docsLink.className = "page-pitch-link page-pitch-pill";
             docsLink.textContent = "The docs start below.";
             docsLink.addEventListener("click", (event) => {
                 event.preventDefault();
@@ -1894,13 +1902,6 @@ const renderPage = () => {
 
         if (entry.actions?.length) {
             actions.push(...entry.actions);
-        }
-
-        if (entry.purchaseLink) {
-            actions.push({
-                href: entry.purchaseLink,
-                label: "Buy Now on Unity Asset Store"
-            });
         }
 
         actions.forEach((action) => {
