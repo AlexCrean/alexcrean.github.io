@@ -19,7 +19,7 @@
     --radius: 4px;
     --sidebar-width: 320px;
     --content-max-width: 960px;
-    --font-ui: Consolas, "Courier New", monospace;
+    --font-ui: 'SF Mono', 'Monaco', 'Menlo', Consolas, 'Courier New', monospace;
 }
 
 * {
