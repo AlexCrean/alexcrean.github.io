@@ -570,18 +570,18 @@ const syncAchievementsUi = () => {
             `);
         }
 
-        if (achievementsState.whyStopThereUnlocked) {
-            unlockedRows.push(`
-                <article class="achievement-row achievement-ultra is-unlocked">
-                    <p class="achievement-title">Why stop there?!</p>
-                </article>
-            `);
-        }
-
         if (achievementsState.siteCartographerUnlocked) {
             unlockedRows.push(`
                 <article class="achievement-row achievement-standard is-unlocked">
                     <p class="achievement-title">Deep Search</p>
+                </article>
+            `);
+        }
+
+        if (achievementsState.whyStopThereUnlocked) {
+            unlockedRows.push(`
+                <article class="achievement-row achievement-ultra is-unlocked">
+                    <p class="achievement-title">Why stop there?!</p>
                 </article>
             `);
         }
