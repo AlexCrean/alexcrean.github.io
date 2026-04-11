@@ -1915,7 +1915,7 @@ const renderPage = () => {
     if (entry.versionLabel) {
         versionParts.push(entry.versionLabel);
     } else if (entry.version) {
-        versionParts.push(`Version ${entry.version}`);
+        versionParts.push(`Public Release ${entry.version}`);
     }
 
     if (!entry.versionLabel && entry.sectionGroups?.length) {
@@ -1998,6 +1998,7 @@ const setChildAccordionsState = (container, open) => {
 };
 
 const renderNav = () => {
+    // region Sidebar navigation rendering
     if (isReferenceSearch(searchQuery)) {
         const results = getReferenceResults();
         navGroups.innerHTML = "";
@@ -2171,6 +2172,7 @@ const renderNav = () => {
         const pageList = document.createElement("div");
         pageList.className = "page-list";
 
+        // Render the visible pages for the current group.
         visiblePages.forEach((page) => {
             const pageEntry = resolveEntry(`/${group.slug}/${page.slug}`);
             const pageLink = document.createElement("button");
@@ -2186,6 +2188,7 @@ const renderNav = () => {
         wrapper.appendChild(pageList);
         navGroups.appendChild(wrapper);
     });
+    // endregion Sidebar navigation rendering
 };
 
 const render = () => {
