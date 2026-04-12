@@ -50,9 +50,12 @@
 <body>
     <a class="skip-link" href="#mainContent">Skip to main content</a>
 
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">
-        Menu
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar" aria-label="Open navigation menu">
+        <span class="menu-toggle-icon" aria-hidden="true"></span>
+        <span class="menu-toggle-label">Menu</span>
     </button>
+
+    <div class="sidebar-backdrop" aria-hidden="true"></div>
 
     <div class="app-shell">
         <aside class="sidebar" id="sidebar">

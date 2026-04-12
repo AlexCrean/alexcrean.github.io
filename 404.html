@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
     <meta name="robots" content="noindex,follow">
     <meta name="theme-color" content="#141414">
     <link rel="alternate" type="text/markdown" title="llms.txt" href="https://alexcrean.github.io/llms.txt">
@@ -196,12 +196,47 @@
             .error-sidebar {
                 position: static;
                 height: auto;
+                padding: 22px 18px;
                 border-right: 0;
                 border-bottom: 1px solid var(--line);
             }
 
             .error-main {
                 padding: 36px 22px 48px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .error-main {
+                padding: 28px 16px 40px;
+            }
+
+            .error-title {
+                font-size: clamp(1.9rem, 12vw, 3rem);
+                line-height: 1.04;
+            }
+
+            .error-copy {
+                margin-top: 18px;
+                font-size: 0.98rem;
+                line-height: 1.75;
+            }
+
+            .error-actions {
+                gap: 10px;
+            }
+
+            .error-button {
+                width: 100%;
+            }
+
+            .error-search {
+                min-height: 44px;
+                font-size: 16px;
+            }
+
+            .error-footer-links {
+                gap: 12px;
             }
         }
     </style>
