@@ -110,6 +110,7 @@ let homeTitleReplayLastTriggeredAt = -Infinity;
 let homeTitleReplayCooldownTimer = 0;
 let homeReplayEasterEggTimer = 0;
 let homeReplayBinaryRainTimer = 0;
+let sidebarScrollLockY = 0;
 let achievementsState = {
     replayClickerUnlocked: false,
     whyStopThereUnlocked: false,
@@ -1817,6 +1818,8 @@ const syncResponsiveSidebarState = () => {
     if (!mobileSidebarMedia.matches) {
         sidebar.classList.remove("is-open");
         document.body.classList.remove("is-sidebar-open");
+        document.body.style.top = "";
+        sidebarScrollLockY = 0;
     }
 
     syncSidebarMenuState();
@@ -1825,6 +1828,11 @@ const syncResponsiveSidebarState = () => {
 const openSidebar = () => {
     if (!sidebar || !menuToggle) {
         return;
+    }
+
+    if (mobileSidebarMedia.matches && !document.body.classList.contains("is-sidebar-open")) {
+        sidebarScrollLockY = window.scrollY;
+        document.body.style.top = `-${sidebarScrollLockY}px`;
     }
 
     sidebar.classList.add("is-open");
@@ -1839,6 +1847,12 @@ const closeSidebar = () => {
 
     sidebar.classList.remove("is-open");
     document.body.classList.remove("is-sidebar-open");
+    if (mobileSidebarMedia.matches) {
+        const scrollRestoreY = sidebarScrollLockY;
+        document.body.style.top = "";
+        sidebarScrollLockY = 0;
+        window.scrollTo(0, scrollRestoreY);
+    }
     syncSidebarMenuState();
 };
 

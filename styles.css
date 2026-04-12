@@ -3028,6 +3028,22 @@ body.is-home-page .section-read-other-commonly-asked-questions > .doc-accordion-
         --mobile-nav-offset: calc(72px + var(--safe-area-inset-top));
     }
 
+    .app-shell {
+        z-index: auto;
+    }
+
+    html:has(body.is-sidebar-open) {
+        overflow: hidden;
+    }
+
+    body.is-sidebar-open {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
     .menu-toggle {
         display: flex;
         position: sticky;
@@ -3073,6 +3089,8 @@ body.is-home-page .section-read-other-commonly-asked-questions > .doc-accordion-
         max-height: none;
         padding: 18px;
         overflow: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 18px;
         background: rgba(20, 20, 20, 0.98);
