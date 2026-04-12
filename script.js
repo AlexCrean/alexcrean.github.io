@@ -98,6 +98,7 @@ const HOME_REPLAY_ULTRA_RARE_DURATION_MS = 2200;
 const HOME_REPLAY_ULTRA_RARE_LINE = "Ultra Rare Unlocked: Binary Rain Mode";
 const DOCUMENT_INSIDE_ROUTE = "/qol/documentinside";
 const mobileSidebarMedia = window.matchMedia("(max-width: 1040px)");
+const mobileCodeViewerMedia = window.matchMedia("(max-width: 720px)");
 
 let accessibilityPrefs = { ...defaultAccessibilityPrefs };
 let headerScrollTicking = false;
@@ -111,6 +112,12 @@ let homeTitleReplayCooldownTimer = 0;
 let homeReplayEasterEggTimer = 0;
 let homeReplayBinaryRainTimer = 0;
 let sidebarScrollLockY = 0;
+let codeViewerScrollLockY = 0;
+let mobileCodeViewer = null;
+let mobileCodeViewerTitle = null;
+let mobileCodeViewerContent = null;
+let mobileCodeViewerCloseButton = null;
+let mobileCodeViewerLastTrigger = null;
 let achievementsState = {
     replayClickerUnlocked: false,
     whyStopThereUnlocked: false,
@@ -131,6 +138,125 @@ const withDefinitionLinks = (value = "") => {
     return escaped.replace(/\b(config asset|config file|config)\b/gi, (match) =>
         `<a class="definition-link" href="${CONFIG_DEFINITION_URL}" target="_blank" rel="noreferrer">${match}</a>`
     );
+};
+
+const getCodeTextFromHtml = (value = "") => {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = value;
+    return (wrapper.textContent || "").replace(/\u00a0/g, " ");
+};
+
+const ensureMobileCodeViewer = () => {
+    if (mobileCodeViewer) {
+        return;
+    }
+
+    mobileCodeViewer = document.createElement("div");
+    mobileCodeViewer.className = "mobile-code-viewer";
+    mobileCodeViewer.hidden = true;
+
+    const panel = document.createElement("section");
+    panel.className = "mobile-code-viewer-panel";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "mobileCodeViewerTitle");
+
+    const header = document.createElement("div");
+    header.className = "mobile-code-viewer-header";
+
+    const kicker = document.createElement("p");
+    kicker.className = "mobile-code-viewer-kicker";
+    kicker.textContent = "Code Sample";
+
+    mobileCodeViewerTitle = document.createElement("h3");
+    mobileCodeViewerTitle.className = "mobile-code-viewer-title";
+    mobileCodeViewerTitle.id = "mobileCodeViewerTitle";
+
+    mobileCodeViewerCloseButton = document.createElement("button");
+    mobileCodeViewerCloseButton.type = "button";
+    mobileCodeViewerCloseButton.className = "mobile-code-viewer-close";
+    mobileCodeViewerCloseButton.textContent = "Close";
+
+    header.appendChild(kicker);
+    header.appendChild(mobileCodeViewerTitle);
+    header.appendChild(mobileCodeViewerCloseButton);
+
+    const body = document.createElement("div");
+    body.className = "mobile-code-viewer-body";
+
+    const codeBlock = document.createElement("pre");
+    codeBlock.className = "code-block mobile-code-viewer-block";
+
+    mobileCodeViewerContent = document.createElement("code");
+    mobileCodeViewerContent.className = "code-content mobile-code-viewer-content";
+
+    codeBlock.appendChild(mobileCodeViewerContent);
+    body.appendChild(codeBlock);
+
+    panel.appendChild(header);
+    panel.appendChild(body);
+    mobileCodeViewer.appendChild(panel);
+    document.body.appendChild(mobileCodeViewer);
+
+    mobileCodeViewer.addEventListener("click", (event) => {
+        if (event.target === mobileCodeViewer) {
+            closeMobileCodeViewer();
+        }
+    });
+
+    mobileCodeViewerCloseButton.addEventListener("click", () => {
+        closeMobileCodeViewer();
+    });
+};
+
+const openMobileCodeViewer = (title, codeHtml, trigger = null) => {
+    ensureMobileCodeViewer();
+
+    if (!mobileCodeViewer || !mobileCodeViewerTitle || !mobileCodeViewerContent) {
+        return;
+    }
+
+    mobileCodeViewerTitle.textContent = title || "Code Sample";
+    mobileCodeViewerContent.innerHTML = codeHtml || "";
+    mobileCodeViewer.hidden = false;
+    mobileCodeViewerLastTrigger = trigger instanceof HTMLElement ? trigger : null;
+
+    if (!document.body.classList.contains("is-code-viewer-open")) {
+        codeViewerScrollLockY = window.scrollY;
+        document.body.style.top = `-${codeViewerScrollLockY}px`;
+    }
+
+    document.body.classList.add("is-code-viewer-open");
+    window.requestAnimationFrame(() => {
+        mobileCodeViewerCloseButton?.focus();
+    });
+};
+
+const closeMobileCodeViewer = () => {
+    if (!mobileCodeViewer || mobileCodeViewer.hidden) {
+        return;
+    }
+
+    mobileCodeViewer.hidden = true;
+    document.body.classList.remove("is-code-viewer-open");
+    document.body.style.top = "";
+    window.scrollTo(0, codeViewerScrollLockY);
+    codeViewerScrollLockY = 0;
+
+    if (mobileCodeViewerContent) {
+        mobileCodeViewerContent.innerHTML = "";
+    }
+
+    if (mobileCodeViewerLastTrigger) {
+        mobileCodeViewerLastTrigger.focus();
+        mobileCodeViewerLastTrigger = null;
+    }
+};
+
+const syncMobileCodeViewerState = () => {
+    if (!mobileCodeViewerMedia.matches) {
+        closeMobileCodeViewer();
+    }
 };
 
 const fallbackCopyText = (value) => {
@@ -1871,6 +1997,8 @@ const navigateTo = (route, replace = false, fragment = "") => {
     const nextUrl = buildUrl(entry.route, currentFragment);
     currentRoute = entry.route;
 
+    closeMobileCodeViewer();
+
     if (entry.groupSlug) {
         openGroups.add(entry.groupSlug);
     }
@@ -2098,7 +2226,7 @@ const appendSectionContent = (body, section) => {
 
     if (section.codeHtml) {
         const codeBlock = document.createElement("pre");
-        codeBlock.className = "code-block";
+        codeBlock.className = "code-block code-block-inline";
 
         const code = document.createElement("code");
         code.className = "code-content";
@@ -2106,6 +2234,55 @@ const appendSectionContent = (body, section) => {
 
         codeBlock.appendChild(code);
         body.appendChild(codeBlock);
+
+        const codePreviewCard = document.createElement("button");
+        codePreviewCard.type = "button";
+        codePreviewCard.className = "mobile-code-card";
+        codePreviewCard.setAttribute("aria-haspopup", "dialog");
+
+        const cardKicker = document.createElement("span");
+        cardKicker.className = "mobile-code-card-kicker";
+        cardKicker.textContent = "Code Sample";
+
+        const cardTitle = document.createElement("span");
+        cardTitle.className = "mobile-code-card-title";
+        cardTitle.textContent = section.heading || "Open the full code sample";
+
+        const previewFrame = document.createElement("span");
+        previewFrame.className = "mobile-code-preview";
+        previewFrame.setAttribute("aria-hidden", "true");
+
+        const previewCode = document.createElement("code");
+        previewCode.className = "code-content mobile-code-preview-content";
+        previewCode.innerHTML = section.codeHtml;
+        previewFrame.appendChild(previewCode);
+
+        const codeText = getCodeTextFromHtml(section.codeHtml);
+        const codeLineCount = codeText.replace(/\n+$/g, "").split("\n").length || 1;
+
+        const cardFooter = document.createElement("span");
+        cardFooter.className = "mobile-code-card-footer";
+
+        const cardMeta = document.createElement("span");
+        cardMeta.className = "mobile-code-card-meta";
+        cardMeta.textContent = `${codeLineCount} line${codeLineCount === 1 ? "" : "s"}`;
+
+        const cardAction = document.createElement("span");
+        cardAction.className = "mobile-code-card-action";
+        cardAction.textContent = "Open full code";
+
+        cardFooter.appendChild(cardMeta);
+        cardFooter.appendChild(cardAction);
+
+        codePreviewCard.appendChild(cardKicker);
+        codePreviewCard.appendChild(cardTitle);
+        codePreviewCard.appendChild(previewFrame);
+        codePreviewCard.appendChild(cardFooter);
+        codePreviewCard.addEventListener("click", () => {
+            openMobileCodeViewer(section.heading || "Code Sample", section.codeHtml, codePreviewCard);
+        });
+
+        body.appendChild(codePreviewCard);
     }
 };
 
@@ -3240,12 +3417,14 @@ if (searchInput) {
 window.addEventListener("popstate", () => {
     currentRoute = resolveEntry(getRequestedRoute()).route;
     currentFragment = getRequestedFragment();
+    closeMobileCodeViewer();
     render();
     closeSidebar();
 });
 
 window.addEventListener("scroll", handleHomeHeaderScroll, { passive: true });
 window.addEventListener("resize", syncResponsiveSidebarState);
+window.addEventListener("resize", syncMobileCodeViewerState);
 
 if (typeof mobileSidebarMedia.addEventListener === "function") {
     mobileSidebarMedia.addEventListener("change", syncResponsiveSidebarState);
@@ -3253,8 +3432,15 @@ if (typeof mobileSidebarMedia.addEventListener === "function") {
     mobileSidebarMedia.addListener(syncResponsiveSidebarState);
 }
 
+if (typeof mobileCodeViewerMedia.addEventListener === "function") {
+    mobileCodeViewerMedia.addEventListener("change", syncMobileCodeViewerState);
+} else if (typeof mobileCodeViewerMedia.addListener === "function") {
+    mobileCodeViewerMedia.addListener(syncMobileCodeViewerState);
+}
+
 window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+        closeMobileCodeViewer();
         closeAccessPanel();
         closeAiPanel();
         closeAchievementPanel();
