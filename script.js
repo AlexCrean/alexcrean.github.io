@@ -64,6 +64,11 @@ const defaultAccessibilityPrefs = {
     underlineLinks: false,
     focusBoost: false
 };
+const defaultAchievementsState = {
+    replayClickerUnlocked: false,
+    whyStopThereUnlocked: false,
+    siteCartographerUnlocked: false
+};
 const knownRoots = new Set(
     viewer.groups.flatMap((group) => [
         group.slug,
@@ -122,12 +127,6 @@ let mobileCodeViewerLastTrigger = null;
 let achievementsState = loadAchievementState();
 let documentInsideCommentFound = false;
 let achievementUnlocksPersisted = false;
-
-const defaultAchievementsState = {
-    replayClickerUnlocked: false,
-    whyStopThereUnlocked: false,
-    siteCartographerUnlocked: false
-};
 
 const escapeHtml = (value = "") =>
     String(value)
