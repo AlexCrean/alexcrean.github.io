@@ -1952,7 +1952,7 @@ const syncSidebarMenuState = () => {
     }
 };
 
-const loadAchievementState = () => {
+function loadAchievementState() {
     try {
         const raw = window.localStorage.getItem(ACHIEVEMENT_STORAGE_KEY);
         if (!raw) {
@@ -1967,7 +1967,7 @@ const loadAchievementState = () => {
     } catch {
         return { ...defaultAchievementsState };
     }
-};
+}
 
 const saveAchievementState = () => {
     try {
