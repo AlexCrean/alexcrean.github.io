@@ -1076,10 +1076,31 @@ body.is-sidebar-panel-open .nav-groups {
     font-weight: 600;
 }
 
+.site-publisher-link::after {
+    content: "";
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    margin-left: 0;
+    opacity: 0;
+    vertical-align: -0.08em;
+    transform: translateX(-2px) rotate(45deg);
+    border-top: 1.5px solid currentColor;
+    border-right: 1.5px solid currentColor;
+    transition: opacity 160ms ease, transform 160ms ease, margin-left 160ms ease;
+}
+
 .site-publisher-link:hover,
 .site-publisher-link:focus-visible {
     color: var(--accent);
     text-decoration: underline;
+}
+
+.site-publisher-link:hover::after,
+.site-publisher-link:focus-visible::after {
+    margin-left: 0.35em;
+    opacity: 1;
+    transform: translateX(0) rotate(45deg);
 }
 
 .page-header,
