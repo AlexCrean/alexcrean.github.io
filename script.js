@@ -56,6 +56,7 @@ const referenceSearchIndex = [];
 const openGroups = new Set(viewer.groups.map((group) => group.slug));
 const isFileProtocol = window.location.protocol === "file:";
 const ACCESS_STORAGE_KEY = "ac_tools_accessibility";
+const ACHIEVEMENT_STORAGE_KEY = "ac_tools_achievements";
 const defaultAccessibilityPrefs = {
     textSize: "default",
     contrast: "default",
@@ -118,12 +119,15 @@ let mobileCodeViewerTitle = null;
 let mobileCodeViewerContent = null;
 let mobileCodeViewerCloseButton = null;
 let mobileCodeViewerLastTrigger = null;
-let achievementsState = {
+let achievementsState = loadAchievementState();
+let documentInsideCommentFound = false;
+let achievementUnlocksPersisted = false;
+
+const defaultAchievementsState = {
     replayClickerUnlocked: false,
     whyStopThereUnlocked: false,
     siteCartographerUnlocked: false
 };
-let documentInsideCommentFound = false;
 
 const escapeHtml = (value = "") =>
     String(value)
@@ -352,6 +356,7 @@ const unlockDeepSearchAchievement = () => {
     }
 
     achievementsState.siteCartographerUnlocked = true;
+    saveAchievementState();
     syncAchievementsUi();
     openAchievementPanel();
 };
@@ -1099,12 +1104,24 @@ const maybeTriggerReplayEasterEgg = (targetText) => {
     pageTitle.textContent = rewardLine;
 
     const hadAnyUnlock = isAnyAchievementUnlocked();
-    achievementsState.replayClickerUnlocked = true;
-    if (ultraRareWon) {
-        achievementsState.whyStopThereUnlocked = true;
+    let unlockedAnyThisRun = false;
+
+    if (!achievementsState.replayClickerUnlocked) {
+        achievementsState.replayClickerUnlocked = true;
+        unlockedAnyThisRun = true;
     }
+
+    if (ultraRareWon && !achievementsState.whyStopThereUnlocked) {
+        achievementsState.whyStopThereUnlocked = true;
+        unlockedAnyThisRun = true;
+    }
+
+    if (unlockedAnyThisRun) {
+        saveAchievementState();
+    }
+
     syncAchievementsUi();
-    if (!hadAnyUnlock || ultraRareWon) {
+    if (!hadAnyUnlock || (ultraRareWon && unlockedAnyThisRun)) {
         openAchievementPanel();
     }
 
@@ -1934,6 +1951,29 @@ const syncSidebarMenuState = () => {
     if ("inert" in sidebar) {
         sidebar.inert = false;
     }
+};
+
+const loadAchievementState = () => {
+    try {
+        const raw = window.localStorage.getItem(ACHIEVEMENT_STORAGE_KEY);
+        if (!raw) {
+            return { ...defaultAchievementsState };
+        }
+
+        const parsed = JSON.parse(raw);
+        return {
+            ...defaultAchievementsState,
+            ...parsed
+        };
+    } catch {
+        return { ...defaultAchievementsState };
+    }
+};
+
+const saveAchievementState = () => {
+    try {
+        window.localStorage.setItem(ACHIEVEMENT_STORAGE_KEY, JSON.stringify(achievementsState));
+    } catch {}
 };
 
 const syncResponsiveSidebarState = () => {
