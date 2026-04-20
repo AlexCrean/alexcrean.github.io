@@ -124,9 +124,29 @@ let mobileCodeViewerTitle = null;
 let mobileCodeViewerContent = null;
 let mobileCodeViewerCloseButton = null;
 let mobileCodeViewerLastTrigger = null;
+let imageViewer = null;
+let imageViewerTitle = null;
+let imageViewerCaption = null;
+let imageViewerViewport = null;
+let imageViewerCanvas = null;
+let imageViewerImage = null;
+let imageViewerZoomStatus = null;
+let imageViewerZoomOutButton = null;
+let imageViewerZoomInButton = null;
+let imageViewerResetButton = null;
+let imageViewerCloseButton = null;
+let imageViewerLastTrigger = null;
+let imageViewerScale = 1;
+let imageViewerFitWidth = 0;
+let imageViewerFitHeight = 0;
+let imageViewerScrollLockY = 0;
 let achievementsState = loadAchievementState();
 let documentInsideCommentFound = false;
 let achievementUnlocksPersisted = false;
+
+const IMAGE_VIEWER_MIN_SCALE = 1;
+const IMAGE_VIEWER_MAX_SCALE = 4;
+const IMAGE_VIEWER_SCALE_STEP = 0.25;
 
 const escapeHtml = (value = "") =>
     String(value)
@@ -254,6 +274,259 @@ const closeMobileCodeViewer = () => {
         mobileCodeViewerLastTrigger.focus();
         mobileCodeViewerLastTrigger = null;
     }
+};
+
+const clampNumber = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const createImageViewerButton = (label, ariaLabel) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "image-viewer-button";
+    button.textContent = label;
+    button.setAttribute("aria-label", ariaLabel);
+    button.title = ariaLabel;
+    return button;
+};
+
+const ensureImageViewer = () => {
+    if (imageViewer) {
+        return;
+    }
+
+    imageViewer = document.createElement("div");
+    imageViewer.className = "image-viewer";
+    imageViewer.hidden = true;
+
+    const panel = document.createElement("section");
+    panel.className = "image-viewer-panel";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "imageViewerTitle");
+
+    const header = document.createElement("div");
+    header.className = "image-viewer-header";
+
+    const heading = document.createElement("div");
+    heading.className = "image-viewer-heading";
+
+    const kicker = document.createElement("p");
+    kicker.className = "image-viewer-kicker";
+    kicker.textContent = "Image Preview";
+
+    imageViewerTitle = document.createElement("h3");
+    imageViewerTitle.className = "image-viewer-title";
+    imageViewerTitle.id = "imageViewerTitle";
+
+    imageViewerCaption = document.createElement("p");
+    imageViewerCaption.className = "image-viewer-caption";
+
+    heading.appendChild(kicker);
+    heading.appendChild(imageViewerTitle);
+    heading.appendChild(imageViewerCaption);
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "image-viewer-toolbar";
+
+    imageViewerZoomOutButton = createImageViewerButton("-", "Zoom out");
+    imageViewerResetButton = createImageViewerButton("1x", "Reset zoom");
+    imageViewerZoomInButton = createImageViewerButton("+", "Zoom in");
+
+    imageViewerZoomStatus = document.createElement("span");
+    imageViewerZoomStatus.className = "image-viewer-zoom-status";
+    imageViewerZoomStatus.setAttribute("aria-live", "polite");
+
+    imageViewerCloseButton = createImageViewerButton("X", "Close image preview");
+    imageViewerCloseButton.classList.add("image-viewer-close");
+
+    toolbar.appendChild(imageViewerZoomOutButton);
+    toolbar.appendChild(imageViewerResetButton);
+    toolbar.appendChild(imageViewerZoomInButton);
+    toolbar.appendChild(imageViewerZoomStatus);
+    toolbar.appendChild(imageViewerCloseButton);
+
+    header.appendChild(heading);
+    header.appendChild(toolbar);
+
+    imageViewerViewport = document.createElement("div");
+    imageViewerViewport.className = "image-viewer-viewport";
+
+    imageViewerCanvas = document.createElement("div");
+    imageViewerCanvas.className = "image-viewer-canvas";
+
+    imageViewerImage = document.createElement("img");
+    imageViewerImage.className = "image-viewer-image";
+    imageViewerImage.alt = "";
+    imageViewerImage.draggable = false;
+
+    imageViewerCanvas.appendChild(imageViewerImage);
+    imageViewerViewport.appendChild(imageViewerCanvas);
+
+    panel.appendChild(header);
+    panel.appendChild(imageViewerViewport);
+    imageViewer.appendChild(panel);
+    document.body.appendChild(imageViewer);
+
+    imageViewer.addEventListener("click", (event) => {
+        if (event.target === imageViewer) {
+            closeImageViewer();
+        }
+    });
+
+    imageViewerZoomOutButton.addEventListener("click", () => {
+        setImageViewerScale(imageViewerScale - IMAGE_VIEWER_SCALE_STEP);
+    });
+
+    imageViewerZoomInButton.addEventListener("click", () => {
+        setImageViewerScale(imageViewerScale + IMAGE_VIEWER_SCALE_STEP);
+    });
+
+    imageViewerResetButton.addEventListener("click", () => {
+        setImageViewerScale(1);
+    });
+
+    imageViewerCloseButton.addEventListener("click", () => {
+        closeImageViewer();
+    });
+
+    imageViewerImage.addEventListener("load", () => {
+        syncImageViewerFitSize();
+        setImageViewerScale(1, { keepCenter: false });
+    });
+};
+
+const syncImageViewerFitSize = () => {
+    if (!imageViewerViewport || !imageViewerImage) {
+        return;
+    }
+
+    const viewportRect = imageViewerViewport.getBoundingClientRect();
+    const naturalWidth = imageViewerImage.naturalWidth || 1;
+    const naturalHeight = imageViewerImage.naturalHeight || 1;
+    const availableWidth = Math.max(160, viewportRect.width - 48);
+    const availableHeight = Math.max(160, viewportRect.height - 48);
+    const fitRatio = Math.min(availableWidth / naturalWidth, availableHeight / naturalHeight, 1);
+
+    imageViewerFitWidth = Math.max(1, Math.round(naturalWidth * fitRatio));
+    imageViewerFitHeight = Math.max(1, Math.round(naturalHeight * fitRatio));
+};
+
+const applyImageViewerScale = ({ keepCenter = true } = {}) => {
+    if (!imageViewerImage || !imageViewerCanvas || !imageViewerViewport) {
+        return;
+    }
+
+    if (!imageViewerFitWidth || !imageViewerFitHeight) {
+        syncImageViewerFitSize();
+    }
+
+    const previousCenterX = imageViewerViewport.scrollWidth
+        ? (imageViewerViewport.scrollLeft + imageViewerViewport.clientWidth / 2) / imageViewerViewport.scrollWidth
+        : 0.5;
+    const previousCenterY = imageViewerViewport.scrollHeight
+        ? (imageViewerViewport.scrollTop + imageViewerViewport.clientHeight / 2) / imageViewerViewport.scrollHeight
+        : 0.5;
+    const width = Math.round(imageViewerFitWidth * imageViewerScale);
+    const height = Math.round(imageViewerFitHeight * imageViewerScale);
+
+    imageViewerImage.style.width = `${width}px`;
+    imageViewerImage.style.height = `${height}px`;
+    imageViewerCanvas.style.setProperty("--image-viewer-width", `${width}px`);
+    imageViewerCanvas.style.setProperty("--image-viewer-height", `${height}px`);
+
+    if (imageViewerZoomStatus) {
+        imageViewerZoomStatus.textContent = `${Math.round(imageViewerScale * 100)}%`;
+    }
+
+    if (imageViewerZoomOutButton) {
+        imageViewerZoomOutButton.disabled = imageViewerScale <= IMAGE_VIEWER_MIN_SCALE;
+    }
+
+    if (imageViewerZoomInButton) {
+        imageViewerZoomInButton.disabled = imageViewerScale >= IMAGE_VIEWER_MAX_SCALE;
+    }
+
+    if (!keepCenter) {
+        imageViewerViewport.scrollLeft = 0;
+        imageViewerViewport.scrollTop = 0;
+        return;
+    }
+
+    window.requestAnimationFrame(() => {
+        imageViewerViewport.scrollLeft = previousCenterX * imageViewerViewport.scrollWidth - imageViewerViewport.clientWidth / 2;
+        imageViewerViewport.scrollTop = previousCenterY * imageViewerViewport.scrollHeight - imageViewerViewport.clientHeight / 2;
+    });
+};
+
+const setImageViewerScale = (scale, options = {}) => {
+    imageViewerScale = clampNumber(scale, IMAGE_VIEWER_MIN_SCALE, IMAGE_VIEWER_MAX_SCALE);
+    applyImageViewerScale(options);
+};
+
+const openImageViewer = ({ src, alt, title, caption } = {}, trigger = null) => {
+    ensureImageViewer();
+
+    if (!imageViewer || !imageViewerImage || !imageViewerTitle || !imageViewerCaption) {
+        return;
+    }
+
+    imageViewerTitle.textContent = title || alt || "Image Preview";
+    imageViewerCaption.textContent = caption || alt || "";
+    imageViewerCaption.hidden = !imageViewerCaption.textContent;
+    imageViewerImage.alt = alt || title || "";
+    imageViewerScale = 1;
+    imageViewerFitWidth = 0;
+    imageViewerFitHeight = 0;
+    imageViewer.hidden = false;
+    imageViewerLastTrigger = trigger instanceof HTMLElement ? trigger : null;
+
+    if (!document.body.classList.contains("is-image-viewer-open")) {
+        imageViewerScrollLockY = window.scrollY;
+        document.body.style.top = `-${imageViewerScrollLockY}px`;
+    }
+
+    document.body.classList.add("is-image-viewer-open");
+    imageViewerImage.src = src || "";
+
+    window.requestAnimationFrame(() => {
+        syncImageViewerFitSize();
+        applyImageViewerScale({ keepCenter: false });
+        imageViewerCloseButton?.focus();
+    });
+};
+
+const closeImageViewer = () => {
+    if (!imageViewer || imageViewer.hidden) {
+        return;
+    }
+
+    imageViewer.hidden = true;
+    document.body.classList.remove("is-image-viewer-open");
+    document.body.style.top = "";
+    window.scrollTo(0, imageViewerScrollLockY);
+    imageViewerScrollLockY = 0;
+    imageViewerScale = 1;
+    imageViewerFitWidth = 0;
+    imageViewerFitHeight = 0;
+
+    if (imageViewerImage) {
+        imageViewerImage.removeAttribute("src");
+        imageViewerImage.style.width = "";
+        imageViewerImage.style.height = "";
+    }
+
+    if (imageViewerLastTrigger) {
+        imageViewerLastTrigger.focus();
+        imageViewerLastTrigger = null;
+    }
+};
+
+const syncImageViewerLayout = () => {
+    if (!imageViewer || imageViewer.hidden) {
+        return;
+    }
+
+    syncImageViewerFitSize();
+    applyImageViewerScale();
 };
 
 const syncMobileCodeViewerState = () => {
@@ -2458,7 +2731,24 @@ const renderMediaItems = (target, items, entry, options = {}) => {
             image.classList.add("is-compact");
         }
 
-        imageFrame.appendChild(image);
+        const imageTrigger = document.createElement("button");
+        imageTrigger.type = "button";
+        imageTrigger.className = "media-image-preview-trigger";
+        imageTrigger.setAttribute("aria-haspopup", "dialog");
+        imageTrigger.setAttribute("aria-label", `Open ${item.title || "reference"} image preview`);
+        imageTrigger.title = "Open image preview";
+        imageTrigger.appendChild(image);
+        imageTrigger.addEventListener("click", () => {
+            openImageViewer({
+                src: image.currentSrc || image.src,
+                alt: image.alt,
+                title: item.title || entry.mediaHeading || "Image Preview",
+                caption: item.caption || ""
+            }, imageTrigger);
+        });
+
+        imageFrame.classList.add("has-image-preview");
+        imageFrame.appendChild(imageTrigger);
         card.appendChild(imageFrame);
 
         const body = document.createElement("div");
@@ -3457,6 +3747,7 @@ window.addEventListener("popstate", () => {
     currentRoute = resolveEntry(getRequestedRoute()).route;
     currentFragment = getRequestedFragment();
     closeMobileCodeViewer();
+    closeImageViewer();
     render();
     closeSidebar();
 });
@@ -3464,6 +3755,7 @@ window.addEventListener("popstate", () => {
 window.addEventListener("scroll", handleHomeHeaderScroll, { passive: true });
 window.addEventListener("resize", syncResponsiveSidebarState);
 window.addEventListener("resize", syncMobileCodeViewerState);
+window.addEventListener("resize", syncImageViewerLayout);
 
 if (typeof mobileSidebarMedia.addEventListener === "function") {
     mobileSidebarMedia.addEventListener("change", syncResponsiveSidebarState);
@@ -3479,6 +3771,7 @@ if (typeof mobileCodeViewerMedia.addEventListener === "function") {
 
 window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+        closeImageViewer();
         closeMobileCodeViewer();
         closeAccessPanel();
         closeAiPanel();
